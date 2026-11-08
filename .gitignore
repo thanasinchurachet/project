@@ -83,3 +83,7 @@ models/_active.txt
 !img/profile_uploads/default-avatar.png
 !img/profile_uploads/default.jpg
 !img/trash_images/default.jpg
+
+# example settings files ARE committed (values masked)
+!.env.example
+!backend/.env.example
