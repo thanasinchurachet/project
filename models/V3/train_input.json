@@ -1,0 +1,68 @@
+{
+  "dataset": {
+    "root": "C:\\Users\\thsch\\Downloads\\waste_classifier_starter\\data\\prepared",
+    "classes": [
+      "กระดาษ",
+      "กระดาษลัง",
+      "ขวดพลาสติก",
+      "ขวดแก้วใส",
+      "ผ้า",
+      "รองเท้า",
+      "หลอดไฟ",
+      "แก้วเก็บความเย็น",
+      "แบตเตอรี่",
+      "โลหะกระป๋อง",
+      "ไม่ใช่ขยะ"
+    ],
+    "counts": {
+      "train": {
+        "กระดาษ": 1350,
+        "กระดาษลัง": 1350,
+        "ขวดพลาสติก": 1350,
+        "ขวดแก้วใส": 1350,
+        "ผ้า": 1350,
+        "รองเท้า": 1350,
+        "หลอดไฟ": 1350,
+        "แก้วเก็บความเย็น": 1350,
+        "แบตเตอรี่": 1350,
+        "โลหะกระป๋อง": 1350,
+        "ไม่ใช่ขยะ": 1350
+      },
+      "val": {
+        "กระดาษ": 150,
+        "กระดาษลัง": 150,
+        "ขวดพลาสติก": 150,
+        "ขวดแก้วใส": 150,
+        "ผ้า": 150,
+        "รองเท้า": 150,
+        "หลอดไฟ": 150,
+        "แก้วเก็บความเย็น": 150,
+        "แบตเตอรี่": 150,
+        "โลหะกระป๋อง": 150,
+        "ไม่ใช่ขยะ": 150
+      }
+    }
+  },
+  "data_dir_used": "C:\\Users\\thsch\\Downloads\\waste_classifier_starter\\data\\prepared",
+  "resume": "C:\\xampp\\htdocs\\project\\backend\\..\\models\\v2\\best.pt",
+  "epochs": 1,
+  "cmd": [
+    "C:\\xampp\\htdocs\\project\\backend\\waste_classification_env\\Scripts\\python.exe",
+    "C:\\Users\\thsch\\Downloads\\waste_classifier_starter\\train.py",
+    "--data-dir",
+    "C:\\Users\\thsch\\Downloads\\waste_classifier_starter\\data\\prepared",
+    "--epochs",
+    "1",
+    "--output-dir",
+    "C:\\xampp\\htdocs\\project\\backend\\..\\models\\v3",
+    "--img-size",
+    "288",
+    "--weighted-sampler",
+    "--aug-strong",
+    "--tta-val",
+    "flip",
+    "--amp",
+    "--init-weights",
+    "C:\\xampp\\htdocs\\project\\backend\\..\\models\\v2\\best.pt"
+  ]
+}

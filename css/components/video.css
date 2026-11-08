@@ -1,0 +1,27 @@
+@import url('../tokens.css');
+
+/* Extra aspect ratio utilities for video-embed wrappers */
+.video-embed {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  background: #000;
+  border-radius: var(--radius-lg);
+}
+.video-embed::before { content: ""; display: block; padding-top: 56.25%; } /* default 16:9 */
+.video-embed > iframe,
+.video-embed > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Portrait 9:16 (TikTok, IG Reels) */
+.video-embed.ratio-9x16::before { padding-top: 177.78%; }
+/* Square 1:1 (IG posts) */
+.video-embed.ratio-1x1::before { padding-top: 100%; }
+/* 4:5 (IG portrait feed common) */
+.video-embed.ratio-4x5::before { padding-top: 125%; }
+

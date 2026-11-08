@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>จัดการโพสต์ - Admin</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      body {
+        font-family: "Kanit", sans-serif;
+      }
+      .table-hover tr {
+        transition: all 0.2s ease;
+      }
+      .table-hover tr:hover {
+        transform: translateX(4px);
+        background-color: #f0fdf4 !important;
+      }
+      .modal-fade-in {
+        animation: modalFadeIn 0.3s ease forwards;
+      }
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100">
+    <!-- Navigation containers -->
+    <div id="navbar-container"></div>
+
+    <!-- Main Content -->
+    <div class="pt-16 md:ml-64">
+      <div class="p-6">
+        <!-- Header Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div class="flex flex-wrap justify-between items-center">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-800">จัดการโพสต์</h1>
+              <p class="text-gray-600" id="totalPosts">กำลังโหลดข้อมูล...</p>
+            </div>
+            <div class="flex space-x-4">
+              <select
+                id="statusFilter"
+                class="rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+              >
+                <option value="pending">รอดำเนินการ</option>
+                <option value="approved">อนุมัติแล้ว</option>
+                <option value="suspended">ปฏิเสธแล้ว</option>
+                <option value="all">ทั้งหมด</option>
+              </select>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="ค้นหาโพสต์..."
+                class="rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Posts Table -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+          <table class="w-full table-hover">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ลำดับ</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">หัวข้อ</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ประเภทขยะ</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้โพสต์</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="postsTableBody">
+              <!-- Posts will be loaded here -->
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          <div class="bg-gray-50 px-6 py-3 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+              <button id="prevButtonMobile" class="btn-pagination">ก่อนหน้า</button>
+              <button id="nextButtonMobile" class="btn-pagination">ถัดไป</button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700" id="paginationInfo"></p>
+              </div>
+              <div>
+                <nav
+                  class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                  id="pagination"
+                ></nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post Detail Modal -->
+    <div
+      id="postModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center"
+    >
+      <div class="bg-white rounded-xl shadow-2xl w-11/12 max-w-4xl modal-fade-in">
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex justify-between items-center">
+            <h3 class="text-2xl font-bold text-gray-800">รายละเอียดโพสต์</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+        </div>
+        <div class="p-6" id="modalContent">
+          <!-- Post details will be loaded here -->
+        </div>
+        <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+          <button onclick="rejectPost()" class="btn-reject">
+            <i class="fas fa-times mr-2"></i>ปฏิเสธ
+          </button>
+          <button onclick="approvePost()" class="btn-approve">
+            <i class="fas fa-check mr-2"></i>อนุมัติ
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentPostId = null;
+      let currentPage = 1;
+      const limit = 8;
+
+      // วันที่แบบสั้น: 2 ต.ค 68
+      function thaiDateShort(d) {
+        try {
+          const dt = new Date(d);
+          if (isNaN(dt)) return d;
+          const months = [
+            "ม.ค","ก.พ","มี.ค","เม.ย","พ.ค","มิ.ย",
+            "ก.ค","ส.ค","ก.ย","ต.ค","พ.ย","ธ.ค"
+          ];
+          const day = dt.getDate();
+          const month = months[dt.getMonth()];
+          const beYear = dt.getFullYear() + 543;
+          const yy = String(beYear).slice(-2);
+          return `${day} ${month} ${yy}`;
+        } catch { return d; }
+      }
+
+      async function loadPosts() {
+        try {
+          const status = document.getElementById("statusFilter").value;
+          const search = document.getElementById("searchInput").value;
+
+          console.log("Loading Posts - Current Page:", currentPage);
+
+          const response = await fetch(
+            `get_pending_posts.php?status=${status}&page=${currentPage}&limit=${limit}&search=${search}`
+          );
+          const data = await response.json();
+
+          console.log("Response data:", data);
+
+          if (!data.success) throw new Error(data.message);
+
+          updateTable(data.data.posts);
+          updatePagination(data.data.total, data.data.page, data.data.limit);
+          document.getElementById(
+            "totalPosts"
+          ).textContent = `จำนวนโพสต์ทั้งหมด: ${data.data.total} โพสต์`;
+        } catch (error) {
+          console.error("Error:", error);
+          Swal.fire({
+            icon: "error",
+            title: "เกิดข้อผิดพลาด",
+            text: error.message,
+          });
+        }
+      }
+// คืนไอคอน FA และสีตามแพลตฟอร์ม
+function platformBrand(platform) {
+  const p = (platform || '').toLowerCase();
+  if (p === 'facebook')  return { icon: 'fa-brands fa-facebook-f', color: '#1877F2' };
+  if (p === 'youtube')   return { icon: 'fa-brands fa-youtube',    color: '#FF0000' };
+  if (p === 'tiktok')    return { icon: 'fa-brands fa-tiktok',     color: '#000000' };
+  if (p === 'instagram') return { icon: 'fa-brands fa-instagram',  color: '#C13584' };
+  return { icon: 'fa-solid fa-play', color: '#4B5563' }; // generic
+}
+      /* ================== แก้คอลัมน์ "หัวข้อ" ให้เป็นไอคอนแพลตฟอร์ม + Play ================== */
+      function updateTable(posts) {
+        const tbody = document.getElementById("postsTableBody");
+        tbody.innerHTML = "";
+
+        let rowIndex = 0;
+        posts.forEach((post) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-gray-50 text-center";
+
+          const statusClass = {
+            pending: "bg-yellow-100 text-yellow-800",
+            approved: "bg-green-100 text-green-800",
+            suspended: "bg-red-100 text-red-800",
+          };
+
+          const statusText = {
+            pending: "รอดำเนินการ",
+            approved: "อนุมัติแล้ว",
+            suspended: "ปฏิเสธแล้ว",
+          };
+
+          const wasteTypeClass = {
+            ขยะทั่วไป: "bg-gray-100 text-gray-800",
+            ขยะอันตราย: "bg-red-100 text-red-800",
+            ขยะรีไซเคิล: "bg-blue-100 text-blue-800",
+          };
+
+          // --- คำนวณข้อมูลรูป/วิดีโอสำหรับคอลัมน์หัวข้อ ---
+          let firstImage = "";
+          try {
+            if (post.image) {
+              const arr =
+                typeof post.image === "string" ? JSON.parse(post.image) : post.image;
+              if (Array.isArray(arr) && arr[0]) firstImage = arr[0];
+            }
+          } catch (_) {}
+
+          const hasVideo =
+            (post.video_source === "url" && !!post.video_url) ||
+            (post.video_source === "file" && !!post.video_path);
+
+          const platform = (post.video_platform || (hasVideo ? "video" : "")).toLowerCase();
+
+          // สีพื้นหลังตามแพลตฟอร์ม
+          const platformBg =
+            platform === "facebook"
+              ? "bg-blue-600"
+              : platform === "youtube"
+              ? "bg-red-600"
+              : platform === "tiktok"
+              ? "bg-gray-900"
+              : platform === "instagram"
+              ? "bg-purple-600"
+              : "bg-gray-700";
+
+          // บล็อก thumbnail
+          const brand = platformBrand(platform);
+
+const thumbBlock = hasVideo
+  ? `
+    <div class="relative flex-shrink-0 h-10 w-10 rounded-full bg-white border border-gray-200
+                flex items-center justify-center shadow-sm">
+      <!-- ไอคอนแพลตฟอร์ม -->
+      <i class="${brand.icon}" style="color:${brand.color}; font-size:16px;"></i>
+
+      <!-- ปุ่ม play ซ้อนมุม -->
+      <span class="absolute -bottom-1 -right-1 bg-black bg-opacity-70 text-white rounded-full p-[2px] leading-none">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+          <path d="M8 5v14l11-7z"></path>
+        </svg>
+      </span>
+    </div>
+  `
+  : `
+    <div class="flex-shrink-0 h-10 w-10">
+      <img class="h-10 w-10 rounded-full object-cover"
+           src="../img/post_img/${firstImage || 'default-post.jpg'}"
+           alt="รูปโพสต์">
+    </div>
+  `;
+
+          rowIndex++;
+          tr.innerHTML = `
+            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-600">${rowIndex}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <div class="text-sm text-gray-900">${thaiDateShort(post.date)}</div>
+            </td>
+
+            <td class="px-6 py-4 text-center">
+              <div class="flex items-center justify-center" style="float: left;">
+                ${thumbBlock}
+                <div class="ml-4" style="text-align: left;">
+                  <div class="text-sm font-medium text-gray-900">${post.title}</div>
+                  <div class="text-sm text-gray-500 line-clamp-1">${post.details}</div>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                wasteTypeClass[post.Waste_type]
+              }">
+                ${post.Waste_type}
+              </span>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <div class="flex items-center justify-center"     style="justify-content: left;"">
+                <div class="flex-shrink-0 h-8 w-8">
+                  <img
+                    class="h-8 w-8 rounded-full object-cover"
+                    src="../img/profile_uploads/${post.profile_img || "default-avatar.jpg"}"
+                    alt="รูปโปรไฟล์"
+                  />
+                </div>
+                <div class="ml-3">
+                  <div class="text-sm font-medium text-gray-900">${post.user_name}</div>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-center">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                statusClass[post.status]
+              }">
+                ${statusText[post.status]}
+              </span>
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+              <button
+                onclick="event.preventDefault(); showPostDetail(${post.postId})"
+                class="tooltip action-btn p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100"
+              >
+                <i class="fas fa-eye mr-1"></i>
+              </button>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      }
+      /* ===================================================================== */
+
+      async function showPostDetail(postId) {
+        try {
+          currentPostId = postId;
+          const modal = document.getElementById("postModal");
+          const modalContent = document.getElementById("modalContent");
+
+          // แสดง Loading
+          modalContent.innerHTML = `
+                <div class="flex items-center justify-center h-64" >
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+                </div>
+            `;
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
+
+          const response = await fetch(`get_post_detail.php?postId=${postId}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json(); // รับข้อมูลเป็น JSON โดยตรง
+          if (!data.success || !data.data) {
+            throw new Error(data.message || "ไม่พบข้อมูลโพสต์");
+          }
+          const post = data.data;
+
+          // แปลง image string เป็น array
+          let images = [];
+          try {
+            if (post.image) {
+              images =
+                typeof post.image === "string" ? JSON.parse(post.image) : post.image;
+            }
+          } catch (err) {
+            console.warn("Error parsing image JSON:", err);
+            images = [];
+          }
+
+          // เตรียม HTML วิดีโอ
+          const videoHtml = (() => {
+            try {
+              if (
+                post.video_source === "url" &&
+                post.video_url &&
+                post.video_platform
+              ) {
+                let src = null;
+                const url = post.video_url;
+                const pf = post.video_platform;
+                if (pf === "youtube") {
+                  const m = url.match(
+                    /(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/
+                  );
+                  src = m ? `https://www.youtube.com/embed/${m[1]}` : null;
+                } else if (pf === "tiktok") {
+                  const m = url.match(/\/video\/(\d+)/);
+                  src = m
+                    ? `https://www.tiktok.com/embed/v2/video/${m[1]}`
+                    : null;
+                } else if (pf === "instagram") {
+                  const m = url.match(
+                    /instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/
+                  );
+                  src = m
+                    ? `https://www.instagram.com/${m[1]}/${m[2]}/embed`
+                    : null;
+                } else if (pf === "facebook") {
+                  src = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(
+                    url
+                  )}&show_text=0`;
+                }
+                return src
+                  ? `<div class="aspect-w-16 aspect-h-9"><iframe src="${src}" class="w-full h-64 rounded-lg shadow-lg" allowfullscreen loading="lazy"></iframe></div>`
+                  : "";
+              } else if (post.video_source === "file" && post.video_path) {
+                return `<video class="w-full h-64 rounded-lg shadow-lg" src="../uploads/videos/${post.video_path}" controls preload="metadata"></video>`;
+              }
+            } catch (e) {
+              console.warn("videoHtml error", e);
+            }
+            return "";
+          })();
+
+          // === แสดงรูปภาพแบบยืดหยุ่น ===
+          const validImages = Array.isArray(images) ? images.filter(Boolean) : [];
+          const hasImages = validImages.length > 0;
+
+          const mainImageHtml = hasImages
+            ? `<div class="aspect-w-16 aspect-h-9">
+                   <img src="../img/post_img/${validImages[0]}"
+                        class="w-full h-64 object-cover rounded-lg shadow-lg"
+                        alt="รูปโพสต์">
+               </div>`
+            : "";
+
+          const thumbsHtml =
+            hasImages && validImages.length > 1
+              ? `<div class="grid grid-cols-4 gap-2">
+                   ${validImages
+                     .slice(1)
+                     .map(
+                       (img) => `
+                     <img src="../img/post_img/${img}"
+                          class="w-full h-20 object-cover rounded-lg shadow-md"
+                          alt="รูปเพิ่มเติม">
+                   `
+                     )
+                     .join("")}
+                 </div>`
+              : "";
+
+          const mediaEmptyHtml =
+            !hasImages && !videoHtml
+              ? `<div class="w-full h-64 rounded-lg border-2 border-dashed border-gray-200
+                        flex items-center justify-center text-gray-400">
+                   ไม่มีรูปภาพหรือวิดีโอแนบ
+                 </div>`
+              : "";
+
+          // สร้าง HTML สำหรับแสดงรายละเอียดโพสต์
+          modalContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- คอลัมน์สื่อ (วิดีโอ/รูปภาพ) -->
+                    <div class="space-y-4">
+                        ${videoHtml || ""}
+                        ${mainImageHtml}
+                        ${thumbsHtml}
+                        ${mediaEmptyHtml}
+                    </div>
+                    <!-- คอลัมน์รายละเอียด -->
+
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500">หัวข้อโพสต์</h4>
+                            <p class="text-lg font-semibold">${post.title}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500">รายละเอียด</h4>
+                            <p class="text-gray-700">${post.details}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">ประเภทขยะ</h4>
+                                <p class="text-gray-700">${post.Waste_type}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">วิธีจัดการ</h4>
+                                <p class="text-gray-700">${post.Management_type}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500">ผู้โพสต์</h4>
+                            <div class="flex items-center mt-1" >
+                                <img src="../img/profile_uploads/${
+                                  post.profile_img || "default-avatar.jpg"
+                                }" 
+                                     class="h-8 w-8 rounded-full object-cover" 
+                                     alt="User avatar">
+                                <span class="ml-2 text-gray-700">${post.user_name}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500">สถานะ</h4>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
+                              post.status === "approved"
+                                ? "bg-green-100 text-green-800"
+                                : post.status === "suspended"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }">
+                                ${
+                                  post.status === "approved"
+                                    ? "อนุมัติแล้ว"
+                                    : post.status === "suspended"
+                                    ? "ปฏิเสธแล้ว"
+                                    : "รอดำเนินการ"
+                                }
+                            </span>
+                        </div>
+                        ${
+                          post.status === "suspended" && post.reject_reason
+                            ? `
+                            <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-red-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-red-800">สาเหตุที่ปฏิเสธ</h3>
+                                        <div class="mt-2 text-sm text-red-700">
+                                            <p>${post.reject_reason}</p>
+                                        </div>
+                                        <div class="mt-1 text-sm text-red-500">
+                                            เมื่อ ${new Date(
+                                              post.reject_date
+                                            ).toLocaleDateString("th-TH", {
+                                              year: "numeric",
+                                              month: "long",
+                                              day: "numeric",
+                                              hour: "2-digit",
+                                              minute: "2-digit",
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                            : ""
+                        }
+                    </div>
+                </div>
+            `;
+
+          // อัปเดต modal footer ตามสถานะของโพสต์
+          const modalFooter = document.querySelector("#postModal .p-6.border-t");
+          if (post.status === "pending") {
+            modalFooter.innerHTML = `
+                    <button onclick="rejectPost()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center">
+                        <i class="fas fa-times mr-2"></i>ปฏิเสธ
+                    </button>
+                    <button onclick="approvePost()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                        <i class="fas fa-check mr-2"></i>อนุมัติ
+                    </button>
+                `;
+          } else if (post.status === "suspended") {
+            modalFooter.innerHTML = `
+                    <button onclick="approvePost()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>เปลี่ยนเป็นอนุมัติ
+                    </button>
+                `;
+          } else if (post.status === "approved") {
+            modalFooter.innerHTML = `
+                    <button onclick="rejectPost()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center">
+                        <i class="fas fa-ban mr-2"></i>ยกเลิกการอนุมัติ
+                    </button>
+                `;
+          }
+        } catch (error) {
+          console.error("Error in showPostDetail:", error);
+        }
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("postModal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        currentPostId = null;
+      }
+
+      async function approvePost() {
+        if (!currentPostId) return;
+
+        const result = await Swal.fire({
+          title: "ยืนยันการอนุมัติ",
+          text: "คุณต้องการอนุมัติโพสต์นี้ใช่หรือไม่?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#10b981",
+          cancelButtonColor: "#6b7280",
+          confirmButtonText: "ใช่, อนุมัติ",
+          cancelButtonText: "ยกเลิก",
+        });
+
+        if (result.isConfirmed) {
+          try {
+            const formData = new FormData();
+            formData.append("postId", currentPostId);
+            formData.append("status", "approved");
+
+            const response = await fetch("update_post_status.php", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
+
+            Swal.fire("สำเร็จ", "อนุมัติโพสต์เรียบร้อยแล้ว", "success");
+            closeModal();
+            loadPosts();
+          } catch (error) {
+            Swal.fire("เกิดข้อผิดพลาด", error.message, "error");
+          }
+        }
+      }
+
+      async function rejectPost() {
+        if (!currentPostId) return;
+
+        const result = await Swal.fire({
+          title: "ปฏิเสธโพสต์",
+          input: "textarea",
+          inputLabel: "กรุณาระบุเหตุผล",
+          inputPlaceholder: "ระบุเหตุผลในการปฏิเสธโพสต์...",
+          inputAttributes: {
+            "aria-label": "ระบุเหตุผลในการปฏิเสธโพสต์",
+          },
+          showCancelButton: true,
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#6b7280",
+          confirmButtonText: "ปฏิเสธโพสต์",
+          cancelButtonText: "ยกเลิก",
+          inputValidator: (value) => {
+            if (!value) {
+              return "กรุณาระบุเหตุผล";
+            }
+          },
+        });
+
+        if (result.isConfirmed) {
+          try {
+            const formData = new FormData();
+            formData.append("postId", currentPostId);
+            formData.append("status", "suspended");
+            formData.append("reason", result.value);
+
+            const response = await fetch("update_post_status.php", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message);
+
+            Swal.fire("สำเร็จ", "ปฏิเสธโพสต์เรียบร้อยแล้ว", "success");
+            closeModal();
+            loadPosts();
+          } catch (error) {
+            Swal.fire("เกิดข้อผิดพลาด", error.message, "error");
+          }
+        }
+      }
+
+      // Event Listeners
+      document.getElementById("statusFilter").addEventListener("change", () => {
+        currentPage = 1;
+        loadPosts();
+      });
+
+      document
+        .getElementById("searchInput")
+        .addEventListener(
+          "input",
+          debounce(() => {
+            currentPage = 1;
+            loadPosts();
+          }, 300)
+        );
+
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        // โหลด navbar ก่อน
+
+        // จากนั้นจึงเริ่มต้นโหลดข้อมูลแดชบอร์ด
+        // Set up refresh button
+
+        // Set up error alert close button
+        document.getElementById("closeErrorBtn")?.addEventListener("click", function () {
+          document.getElementById("errorAlert").classList.add("hidden");
+        });
+
+        // Auto-refresh dashboard data every 5 minutes
+        setInterval(() => {
+          fetchDashboardData?.();
+          updateActivityChart?.();
+          fetchSystemStatus?.();
+        }, 300000);
+      });
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          // ตั้งค่าเริ่มต้นให้แสดงโพสต์ที่รอดำเนินการ
+          document.getElementById("statusFilter").value = "pending";
+
+          // โหลด navbar
+          await loadNavbar();
+
+          // โหลดข้อมูลโพสต์
+          await loadPosts();
+        } catch (error) {
+          console.error("Error initializing page:", error);
+        }
+      });
+
+      function updatePagination(total, apiCurrentPage, limit) {
+        console.log("Update Pagination:", {
+          total,
+          apiCurrentPage,
+          limit,
+          localCurrentPage: currentPage,
+        });
+
+        const totalPages = Math.ceil(total / limit);
+        const pagination = document.getElementById("pagination");
+        const paginationInfo = document.getElementById("paginationInfo");
+        const start = (apiCurrentPage - 1) * limit + 1;
+        const end = Math.min(apiCurrentPage * limit, total);
+
+        // อัพเดทข้อความแสดงจำนวนรายการ
+        if (total > 0) {
+          paginationInfo.textContent = `แสดง ${start} ถึง ${end} จากทั้งหมด ${total} รายการ`;
+        } else {
+          paginationInfo.textContent = "ไม่พบรายการ";
+        }
+
+        // อัพเดท currentPage ด้วยค่าจาก API
+        currentPage = apiCurrentPage;
+
+        // สร้างปุ่ม pagination
+        pagination.innerHTML = "";
+
+        // ปุ่มก่อนหน้า
+        const prevButton = document.createElement("button");
+        prevButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-l-md ${
+          apiCurrentPage === 1
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white text-gray-700 hover:bg-gray-50"
+        }`;
+        prevButton.innerHTML = "ก่อนหน้า";
+        prevButton.disabled = apiCurrentPage === 1;
+        if (apiCurrentPage !== 1) {
+          prevButton.onclick = () => {
+            currentPage--;
+            loadPosts();
+          };
+        }
+        pagination.appendChild(prevButton);
+
+        // ปุ่มตัวเลข
+        let startPage = Math.max(1, apiCurrentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+
+        if (endPage - startPage < 4) {
+          startPage = Math.max(1, endPage - 4);
+        }
+
+        // แสดงปุ่มหน้าแรก
+        if (startPage > 1) {
+          const firstButton = document.createElement("button");
+          firstButton.className =
+            "relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-white text-gray-700 hover:bg-gray-50";
+          firstButton.textContent = "1";
+          firstButton.onclick = () => {
+            currentPage = 1;
+            loadPosts();
+          };
+          pagination.appendChild(firstButton);
+
+          if (startPage > 2) {
+            const ellipsis = document.createElement("span");
+            ellipsis.className =
+              "relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-white text-gray-700";
+            ellipsis.textContent = "...";
+            pagination.appendChild(ellipsis);
+          }
+        }
+
+        // ปุ่มตัวเลขกลาง
+        for (let i = startPage; i <= endPage; i++) {
+          const pageButton = document.createElement("button");
+          pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+            apiCurrentPage === i
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-white text-gray-700 hover:bg-gray-50"
+          }`;
+          pageButton.textContent = i;
+          pageButton.onclick = () => {
+            currentPage = i;
+            loadPosts();
+          };
+          pagination.appendChild(pageButton);
+        }
+
+        // แสดงปุ่มหน้าสุดท้าย
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement("span");
+            ellipsis.className =
+              "relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-white text-gray-700";
+            ellipsis.textContent = "...";
+            pagination.appendChild(ellipsis);
+          }
+
+          const lastButton = document.createElement("button");
+          lastButton.className =
+            "relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-white text-gray-700 hover:bg-gray-50";
+          lastButton.textContent = totalPages;
+          lastButton.onclick = () => {
+            currentPage = totalPages;
+            loadPosts();
+          };
+          pagination.appendChild(lastButton);
+        }
+
+        // ปุ่มถัดไป
+        const nextButton = document.createElement("button");
+        nextButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-r-md ${
+          apiCurrentPage === totalPages
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+            : "bg-white text-gray-700 hover:bg-gray-50"
+        }`;
+        nextButton.innerHTML = "ถัดไป";
+        nextButton.disabled = apiCurrentPage === totalPages;
+        if (apiCurrentPage !== totalPages) {
+          nextButton.onclick = () => {
+            currentPage++;
+            loadPosts();
+          };
+        }
+        pagination.appendChild(nextButton);
+      }
+    </script>
+    <script src="navbar.js"></script>
+  </body>
+</html>

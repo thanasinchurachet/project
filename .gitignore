@@ -1,0 +1,85 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.idea/
+.vscode/
+
+# Env and secrets
+.env
+.env.*
+backend/.env
+
+# PHP (Composer)
+vendor/
+
+# Node
+node_modules/
+
+# Logs and cache
+*.log
+log/
+logs/
+.cache/
+cache/
+tmp/
+temp/
+debug_log.txt
+post_debug_log.txt
+
+# Uploads and generated content
+uploads/
+
+# Database dumps/backups
+db_backup/
+*.sql
+
+# Python caches and envs
+__pycache__/
+*.pyc
+.venv/
+venv/
+backend/waste_classification_env/
+backend/dataset_tools/.venv/
+
+# ML model artifacts (large binaries)
+*.onnx
+*.h5
+*.tflite
+*.pth
+*.pt
+*.ckpt
+*.pkl
+
+# Data (keep placeholders only)
+data/*
+!data/.gitkeep
+!data/prepared/.gitkeep
+
+# Keep model metadata files
+!models/**/*.json
+!models/**/*.yml
+!models/**/*.yaml
+!models/**/*.txt
+!models/**/README*
+
+# User uploads (real people's pictures stay on the server, never in git)
+img/post_img/*
+img/profile_uploads/*
+img/trash_content/*
+img/trash_images/*
+admin/img/trash_content/*
+!**/.gitkeep
+
+# Thesis documents and large model weights
+doc/
+*.docx
+*.zip
+models/**/*.pt
+
+# runtime state written by the model server
+models/_active.txt
+!img/profile_uploads/default-avatar.png
+!img/profile_uploads/default.jpg
+!img/trash_images/default.jpg

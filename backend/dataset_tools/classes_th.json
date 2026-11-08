@@ -1,0 +1,13 @@
+{
+  "กระดาษ": ["กระดาษ", "paper"],
+  "กระดาษลัง": ["กระดาษลัง", "cardboard box", "corrugated cardboard"],
+  "แก้วเก็บความเย็น": ["แก้วเก็บความเย็น", "tumbler", "insulated bottle", "thermos"],
+  "ขวดแก้วใส": ["ขวดแก้วใส", "clear glass bottle"],
+  "ขวดพลาสติก": ["ขวดพลาสติก", "plastic bottle", "PET bottle"],
+  "แบตเตอรี่": ["แบตเตอรี่", "AA battery", "lithium battery"],
+  "ผ้า": ["ผ้า", "fabric", "cloth", "clothes"],
+  "ไม่ใช่ขยะ": ["not waste", "landscape", "street view", "cat", "office desk"],
+  "รองเท้า": ["รองเท้า", "shoes", "sneakers", "leather shoes"],
+  "โลหะกระป๋อง": ["โลหะกระป๋อง", "aluminum can", "tin can"],
+  "หลอดไฟ": ["หลอดไฟ", "led bulb", "incandescent bulb", "fluorescent tube"]
+}

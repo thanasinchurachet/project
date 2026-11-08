@@ -1,0 +1,412 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang="th"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;รายละเอียดโพสต์ - Waste Management&lt;/title&gt;
+    
+    &lt;!-- Tailwind CSS --&gt;
+    &lt;link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"&gt;
+    
+    &lt;!-- Google Fonts --&gt;
+    &lt;link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet"&gt;
+    
+    &lt;!-- Font Awesome --&gt;
+    &lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"&gt;
+    
+    &lt;!-- SweetAlert2 --&gt;
+    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"&gt;&lt;/script&gt;
+    
+    &lt;style&gt;
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f4f4f4;
+        }
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .image-gallery img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+        .image-gallery img:hover {
+            transform: scale(1.05);
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body class="bg-gray-100"&gt;
+    &lt;!-- Navigation Container --&gt;
+    &lt;div id="navbar-container"&gt;&lt;/div&gt;
+
+    &lt;!-- Main Content --&gt;
+    &lt;div class="container mx-auto px-4 py-8 md:px-8 lg:px-16"&gt;
+        &lt;div class="bg-white shadow-lg rounded-xl overflow-hidden"&gt;
+            &lt;!-- Post Header --&gt;
+            &lt;div class="bg-green-50 p-6 border-b border-green-200"&gt;
+                &lt;div class="flex items-center space-x-4"&gt;
+                    &lt;img src="img/profile_uploads/&lt;?php echo htmlspecialchars($post['user_profile'] ?? 'default-avatar.jpg'); ?&gt;" 
+                         alt="โปรไฟล์ผู้โพสต์" 
+                         class="w-16 h-16 rounded-full object-cover"&gt;
+                    &lt;div&gt;
+                        &lt;h1 class="text-2xl font-bold text-green-800"&gt;&lt;?php echo htmlspecialchars($post['title']); ?&gt;&lt;/h1&gt;
+                        &lt;p class="text-gray-600"&gt;
+                            โพสต์โดย &lt;?php echo htmlspecialchars($post['user_name']); ?&gt; 
+                            | &lt;?php echo date('d F Y เวลา H:i', strtotime($post['date'])); ?&gt;
+                        &lt;/p&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;!-- Post Content --&gt;
+            &lt;div class="p-6"&gt;
+                &lt;!-- Image Gallery --&gt;
+                &lt;?php if (!empty($post['images'])): ?&gt;
+                    &lt;div class="image-gallery mb-6"&gt;
+                        &lt;?php foreach ($post['images'] as $image): ?&gt;
+                            &lt;img src="img/post_img/&lt;?php echo htmlspecialchars($image); ?&gt;" 
+                                 alt="รูปภาพโพสต์" 
+                                 class="rounded-lg shadow-md"&gt;
+                        &lt;?php endforeach; ?&gt;
+                    &lt;/div&gt;
+                &lt;?php endif; ?&gt;
+
+                &lt;!-- Post Details --&gt;
+                &lt;div class="mb-6"&gt;
+                    &lt;p class="text-gray-800 leading-relaxed"&gt;
+                        &lt;?php echo nl2br(htmlspecialchars($post['details'])); ?&gt;
+                    &lt;/p&gt;
+                &lt;/div&gt;
+
+                &lt;!-- Post Metadata --&gt;
+                &lt;div class="grid grid-cols-2 gap-4 mb-6 text-center"&gt;
+                    &lt;div class="bg-green-50 p-4 rounded-lg border border-green-200"&gt;
+                        &lt;h4 class="text-sm font-medium text-green-800 mb-2"&gt;ประเภทขยะ&lt;/h4&gt;
+                        &lt;p class="text-gray-700"&gt;&lt;?php echo htmlspecialchars($post['Waste_type']); ?&gt;&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;div class="bg-blue-50 p-4 rounded-lg border border-blue-200"&gt;
+                        &lt;h4 class="text-sm font-medium text-blue-800 mb-2"&gt;วิธีจัดการ&lt;/h4&gt;
+                        &lt;p class="text-gray-700"&gt;&lt;?php echo htmlspecialchars($post['Management_type']); ?&gt;&lt;/p&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;!-- Interaction Stats --&gt;
+                &lt;div class="flex justify-between items-center border-t pt-4"&gt;
+                    &lt;div class="flex items-center space-x-4"&gt;
+                        &lt;button id="likeButton" class="flex items-center space-x-2 text-gray-600 hover:text-green-600"&gt;
+                            &lt;i class="fas fa-heart"&gt;&lt;/i&gt;
+                            &lt;span&gt;&lt;?php echo intval($post['like_count']); ?&gt; ถูกใจ&lt;/span&gt;
+                        &lt;/button&gt;
+                        &lt;div class="flex items-center space-x-2 text-gray-600"&gt;
+                            &lt;i class="fas fa-comment"&gt;&lt;/i&gt;
+                            &lt;span&gt;&lt;?php echo intval($post['comment_count']); ?&gt; ความคิดเห็น&lt;/span&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;?php if ($post['userId'] === $_SESSION['user_id']): ?&gt;
+                        &lt;div class="flex space-x-2"&gt;
+                            &lt;button class="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600"&gt;
+                                &lt;i class="fas fa-edit mr-2"&gt;&lt;/i&gt;แก้ไข
+                            &lt;/button&gt;
+                            &lt;button class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"&gt;
+                                &lt;i class="fas fa-trash mr-2"&gt;&lt;/i&gt;ลบ
+                            &lt;/button&gt;
+                        &lt;/div&gt;
+                    &lt;?php endif; ?&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;!-- Comments Section --&gt;
+        &lt;div class="mt-8 bg-white shadow-lg rounded-xl"&gt;
+            &lt;div class="p-6 border-b border-gray-200"&gt;
+                &lt;h3 class="text-xl font-bold text-green-800"&gt;ความคิดเห็น&lt;/h3&gt;
+            &lt;/div&gt;
+
+            &lt;!-- Comment Input --&gt;
+            &lt;div class="p-6 border-b border-gray-200"&gt;
+                &lt;div class="flex items-start space-x-4"&gt;
+                    &lt;img src="img/profile_uploads/&lt;?php echo htmlspecialchars($_SESSION['profile_img'] ?? 'default-avatar.jpg'); ?&gt;" 
+                         alt="โปรไฟล์ผู้ใช้" 
+                         class="w-12 h-12 rounded-full object-cover"&gt;
+                    &lt;div class="flex-grow"&gt;
+                        &lt;textarea id="commentInput" 
+                                  class="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-green-200" 
+                                  rows="3" 
+                                  placeholder="เขียนความคิดเห็นของคุณที่นี่..."&gt;&lt;/textarea&gt;
+                        &lt;button id="submitComment" 
+                                class="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"&gt;
+                            ส่งความคิดเห็น
+                        &lt;/button&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;!-- Comments List --&gt;
+            &lt;div id="commentsList"&gt;
+                &lt;?php if (empty($comments)): ?&gt;
+                    &lt;div class="p-6 text-center text-gray-500"&gt;
+                        &lt;i class="fas fa-comment-slash text-4xl mb-4"&gt;&lt;/i&gt;
+                        &lt;p&gt;ยังไม่มีความคิดเห็น&lt;/p&gt;
+                    &lt;/div&gt;
+                &lt;?php else: ?&gt;
+                    &lt;?php foreach ($comments as $comment): ?&gt;
+                        &lt;div class="p-6 border-b border-gray-200 flex items-start space-x-4"&gt;
+                            &lt;img src="img/profile_uploads/&lt{php echo htmlspecialchars($comment['commenter_profile'] ?? 'default-avatar.jpg'); ?>" 
+                            alt="โปรไฟล์ผู้แสดงความคิดเห็น" 
+                            class="w-12 h-12 rounded-full object-cover"&gt;
+                           &lt;div class="flex-grow"&gt;
+                               &lt;div class="flex justify-between items-center mb-2"&gt;
+                                   &lt;div&gt;
+                                       &lt;h4 class="font-semibold text-gray-800"&gt;
+                                           &lt;?php echo htmlspecialchars($comment['commenter_name']); ?&gt;
+                                       &lt;/h4&gt;
+                                       &lt;p class="text-xs text-gray-500"&gt;
+                                           &lt;?php echo date('d F Y เวลา H:i', strtotime($comment['date_created'])); ?&gt;
+                                       &lt;/p&gt;
+                                   &lt;/div&gt;
+                                   &lt;div class="flex items-center space-x-2"&gt;
+                                       &lt;button class="text-gray-500 hover:text-green-600"&gt;
+                                           &lt;i class="fas fa-reply"&gt;&lt;/i&gt;
+                                       &lt;/button&gt;
+                                       &lt;?php if ($comment['userId'] === $_SESSION['user_id']): ?&gt;
+                                           &lt;div class="dropdown relative"&gt;
+                                               &lt;button class="text-gray-500 hover:text-gray-700"&gt;
+                                                   &lt;i class="fas fa-ellipsis-v"&gt;&lt;/i&gt;
+                                               &lt;/button&gt;
+                                               &lt;div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10"&gt;
+                                                   &lt;a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"&gt;
+                                                       &lt;i class="fas fa-edit mr-2"&gt;&lt;/i&gt;แก้ไข
+                                                   &lt;/a&gt;
+                                                   &lt;a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"&gt;
+                                                       &lt;i class="fas fa-trash mr-2"&gt;&lt;/i&gt;ลบ
+                                                   &lt;/a&gt;
+                                               &lt;/div&gt;
+                                           &lt;/div&gt;
+                                       &lt;?php endif; ?&gt;
+                                   &lt;/div&gt;
+                               &lt;/div&gt;
+                               &lt;p class="text-gray-700"&gt;
+                                   &lt;?php echo nl2br(htmlspecialchars($comment['content'])); ?&gt;
+                               &lt;/p&gt;
+                               &lt;div class="mt-2 flex items-center space-x-4"&gt;
+                                   &lt;button class="text-sm text-gray-600 hover:text-green-600 flex items-center space-x-1"&gt;
+                                       &lt;i class="fas fa-heart"&gt;&lt;/i&gt;
+                                       &lt;span&gt;0 ถูกใจ&lt;/span&gt;
+                                   &lt;/button&gt;
+                               &lt;/div&gt;
+                           &lt;/div&gt;
+                       &lt;/div&gt;
+                   &lt;?php endforeach; ?&gt;
+               &lt;?php endif; ?&gt;
+           &lt;/div&gt;
+       &lt;/div&gt;
+   &lt;/div&gt;
+
+   &lt;!-- Modal for Image Preview --&gt;
+   &lt;div id="imagePreviewModal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50 p-4"&gt;
+       &lt;div class="relative max-w-4xl mx-auto"&gt;
+           &lt;button id="closeImagePreview" class="absolute -top-10 right-0 text-white text-3xl"&gt;
+               &lt;i class="fas fa-times"&gt;&lt;/i&gt;
+           &lt;/button&gt;
+           &lt;img id="previewImage" src="" alt="Preview" class="max-w-full max-h-screen object-contain"&gt;
+       &lt;/div&gt;
+   &lt;/div&gt;
+
+   &lt;!-- Scripts --&gt;
+   &lt;script&gt;
+       document.addEventListener('DOMContentLoaded', function() {
+           // Image Preview Modal
+           const imageGallery = document.querySelector('.image-gallery');
+           const imagePreviewModal = document.getElementById('imagePreviewModal');
+           const previewImage = document.getElementById('previewImage');
+           const closeImagePreview = document.getElementById('closeImagePreview');
+
+           if (imageGallery) {
+               imageGallery.addEventListener('click', function(e) {
+                   if (e.target.tagName === 'IMG') {
+                       previewImage.src = e.target.src;
+                       imagePreviewModal.classList.remove('hidden');
+                       imagePreviewModal.classList.add('flex');
+                   }
+               });
+           }
+
+           if (closeImagePreview) {
+               closeImagePreview.addEventListener('click', function() {
+                   imagePreviewModal.classList.add('hidden');
+                   imagePreviewModal.classList.remove('flex');
+               });
+           }
+
+           // Comment Submission
+           const commentInput = document.getElementById('commentInput');
+           const submitCommentBtn = document.getElementById('submitComment');
+           const commentsList = document.getElementById('commentsList');
+
+           if (submitCommentBtn) {
+               submitCommentBtn.addEventListener('click', async function() {
+                   const commentText = commentInput.value.trim();
+                   
+                   if (commentText === '') {
+                       Swal.fire({
+                           icon: 'warning',
+                           title: 'กรุณากรอกความคิดเห็น',
+                           text: 'ไม่สามารถส่งความคิดเห็นว่างเปล่าได้'
+                       });
+                       return;
+                   }
+
+                   try {
+                       const response = await fetch('submit_comment.php', {
+                           method: 'POST',
+                           headers: {
+                               'Content-Type': 'application/x-www-form-urlencoded',
+                           },
+                           body: `postId=&lt;?php echo $postId; ?&gt;&comment=${encodeURIComponent(commentText)}`
+                       });
+
+                       const result = await response.json();
+
+                       if (result.success) {
+                           // สร้าง element คอมเมนต์ใหม่
+                           const newCommentHtml = `
+                               &lt;div class="p-6 border-b border-gray-200 flex items-start space-x-4 animate-fade-in"&gt;
+                                   &lt;img src="img/profile_uploads/&lt;?php echo htmlspecialchars($_SESSION['profile_img'] ?? 'default-avatar.jpg'); ?&gt;" 
+                                        alt="โปรไฟล์ผู้ใช้" 
+                                        class="w-12 h-12 rounded-full object-cover"&gt;
+                                   &lt;div class="flex-grow"&gt;
+                                       &lt;div class="flex justify-between items-center mb-2"&gt;
+                                           &lt;div&gt;
+                                               &lt;h4 class="font-semibold text-gray-800"&gt;
+                                                   &lt;?php echo htmlspecialchars($_SESSION['user_name']); ?&gt;
+                                               &lt;/h4&gt;
+                                               &lt;p class="text-xs text-gray-500"&gt;เมื่อสักครู่&lt;/p&gt;
+                                           &lt;/div&gt;
+                                       &lt;/div&gt;
+                                       &lt;p class="text-gray-700"&gt;${commentText}&lt;/p&gt;
+                                   &lt;/div&gt;
+                               &lt;/div&gt;
+                           `;
+
+                           // เพิ่มคอมเมนต์ใหม่
+                           if (commentsList.children[0].classList.contains('text-center')) {
+                               commentsList.innerHTML = newCommentHtml;
+                           } else {
+                               commentsList.insertAdjacentHTML('afterbegin', newCommentHtml);
+                           }
+
+                           // รีเซ็ตช่องใส่คอมเมนต์
+                           commentInput.value = '';
+
+                           // อัปเดตจำนวนคอมเมนต์
+                           const commentCountEl = document.querySelector('.fa-comment').nextElementSibling;
+                           const currentCount = parseInt(commentCountEl.textContent);
+                           commentCountEl.textContent = `${currentCount + 1} ความคิดเห็น`;
+                       } else {
+                           Swal.fire({
+                               icon: 'error',
+                               title: 'เกิดข้อผิดพลาด',
+                               text: result.message || 'ไม่สามารถส่งความคิดเห็นได้'
+                           });
+                       }
+                   } catch (error) {
+                       console.error('Error:', error);
+                       Swal.fire({
+                           icon: 'error',
+                           title: 'เกิดข้อผิดพลาด',
+                           text: 'มีปัญหาในการส่งความคิดเห็น กรุณาลองใหม่อีกครั้ง'
+                       });
+                   }
+               });
+           }
+
+           // Like Post Functionality
+           const likeButton = document.getElementById('likeButton');
+           if (likeButton) {
+               likeButton.addEventListener('click', async function() {
+                   try {
+                       const response = await fetch('like_post.php', {
+                           method: 'POST',
+                           headers: {
+                               'Content-Type': 'application/x-www-form-urlencoded',
+                           },
+                           body: `postId=&lt;?php echo $postId; ?&gt;`
+                       });
+
+                       const result = await response.json();
+
+                       if (result.success) {
+                           const likeCountEl = this.querySelector('span');
+                           const currentCount = parseInt(likeCountEl.textContent);
+                           
+                           if (result.action === 'liked') {
+                               likeCountEl.textContent = `${currentCount + 1} ถูกใจ`;
+                               this.querySelector('i').classList.add('text-red-500');
+                           } else {
+                               likeCountEl.textContent = `${currentCount - 1} ถูกใจ`;
+                               this.querySelector('i').classList.remove('text-red-500');
+                           }
+                       } else {
+                           Swal.fire({
+                               icon: 'error',
+                               title: 'เกิดข้อผิดพลาด',
+                               text: result.message || 'ไม่สามารถดำเนินการได้'
+                           });
+                       }
+                   } catch (error) {
+                       console.error('Error:', error);
+                       Swal.fire({
+                           icon: 'error',
+                           title: 'เกิดข้อผิดพลาด',
+                           text: 'มีปัญหาในการทำรายการ กรุณาลองใหม่อีกครั้ง'
+                       });
+                   }
+               });
+           }
+
+           // Dropdown Menu for Comment Options
+           const commentDropdowns = document.querySelectorAll('.dropdown');
+           commentDropdowns.forEach(dropdown => {
+               const button = dropdown.querySelector('button');
+               const menu = dropdown.querySelector('.dropdown-menu');
+
+               button.addEventListener('click', function(e) {
+                   e.stopPropagation();
+                   menu.classList.toggle('hidden');
+               });
+
+               // Close dropdown when clicking outside
+               document.addEventListener('click', function() {
+                   menu.classList.add('hidden');
+               });
+           });
+       });
+   &lt;/script&gt;
+
+   &lt;!-- Navbar Script --&gt;
+   &lt;script&gt;
+       async function loadNavbar() {
+           try {
+               const response = await fetch('navbar.html');
+               const html = await response.text();
+               document.getElementById('navbar-container').innerHTML = html;
+               
+               // Run scripts in the navbar
+               const scripts = document.getElementById('navbar-container').getElementsByTagName('script');
+               for(let script of scripts) {
+                   eval(script.innerHTML);
+               }
+           } catch (error) {
+               console.error('Error loading navbar:', error);
+           }
+       }
+
+       document.addEventListener('DOMContentLoaded', loadNavbar);
+   &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;

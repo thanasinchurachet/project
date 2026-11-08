@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinBuddy - เข้าสู่ระบบ</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- เพิ่ม SweetAlert2 เพื่อแสดง UI แจ้งเตือนที่ดีขึ้น -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        select{
+            font-family: 'Kanit', sans-serif;
+        }
+        input{
+            font-family: 'Kanit', sans-serif;
+        }
+        button {
+            font-family: 'Kanit', sans-serif;
+        }
+        .font-bold{
+            font-family: 'Kanit', sans-serif;
+        }
+        .header, .footer {
+            font-family: 'Kanit', sans-serif;
+        }
+        .rounded-xl {
+            border-radius: 3rem;
+        }
+        .py-16 {
+            padding-top: 0rem;
+            padding-bottom: 4rem;
+        }
+        body, h1, h2, h3, h4, h5, h6, p, a, span, li, select, input, button {
+            font-family: 'Kanit', sans-serif;
+        }
+        .rounded-3xl {
+            border-radius: 1.5rem;
+        }
+        /* เพิ่มสไตล์สำหรับข้อความแจ้งเตือน */
+        .alert {
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+        }
+        .alert-error {
+            background-color: #FEE2E2;
+            color: #B91C1C;
+            border: 1px solid #EF4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- ส่วนล็อกอิน -->
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-green-600">BinBuddy</h1>
+                <p class="text-gray-600">เข้าสู่ระบบเพื่อเริ่มการแยกขยะ</p>
+            </div>
+            <!-- เพิ่มส่วนแสดงข้อความแจ้งเตือน (จะถูกแสดงหรือซ่อนโดย JavaScript) -->
+            <div id="loginAlert" class="alert alert-error hidden mb-4">
+                <span id="loginAlertMessage"></span>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700">อีเมล</label>
+                    <input type="email" id="email" class="w-full p-2 border rounded-lg" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700">รหัสผ่าน</label>
+                    <div class="relative">
+                        <input type="password" id="password" autocomplete="current-password" class="w-full p-2 pr-10 border rounded-lg" required>
+                        <button type="button" id="togglePassword" aria-label="แสดง/ซ่อนรหัสผ่าน" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700">
+                            <!-- eye (show) -->
+                            <svg class="w-5 h-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <!-- eye-off (hide) -->
+                            <svg class="w-5 h-5 eye-off hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a10.05 10.05 0 012.234-3.592M6.18 6.18A9.99 9.99 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.07 10.07 0 01-4.133 5.225M15 12a3 3 0 00-3-3m0 0a3 3 0 013 3m-3-3L3 21m9-12l9 9" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white p-2 rounded-lg hover:bg-green-700">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+
+            <!-- ลิงก์ลืมรหัสผ่าน -->
+            <div class="text-center mt-4">
+                <p class="text-gray-600">ลืมรหัสผ่าน? <a href="#" id="forgotPasswordLink" class="text-green-600 hover:underline">คลิกที่นี่</a></p>
+            </div>
+
+            <!-- ปุ่มลงทะเบียน -->
+            <div class="text-center mt-4">
+                <p class="text-gray-600">ยังไม่มีบัญชี? <a href="register.html" class="text-green-600 hover:underline">ลงทะเบียน</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ส่วนของลืมรหัสผ่าน -->
+    <div id="forgotPasswordForm" class="min-h-screen flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-green-600">ลืมรหัสผ่าน</h1>
+                <p class="text-gray-600">กรุณากรอกอีเมลที่ใช้ลงทะเบียนเพื่อรับลิงก์ตั้งรหัสผ่านใหม่</p>
+            </div>
+            <form id="emailForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700">อีเมล</label>
+                    <input type="email" id="forgotEmail" class="w-full p-2 border rounded-lg" required>
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white p-2 rounded-lg hover:bg-green-700">
+                    ส่งลิงก์ตั้งรหัสผ่าน
+                </button>
+            </form>
+
+            <!-- ปุ่มกลับไปหน้าเข้าสู่ระบบ -->
+            <div class="text-center mt-4">
+                <button id="backToLogin" class="text-green-600 hover:underline">กลับไปยังหน้าล็อกอิน</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+          const loginSection   = document.getElementById('loginForm').closest('.min-h-screen');
+  const forgotSection  = document.getElementById('forgotPasswordForm');
+        // เมื่อกดปุ่มเข้าสู่ระบบ
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+        
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+        
+            // ตรวจสอบข้อมูลก่อนส่ง
+            if (!email || !password) {
+                showAlert('กรุณากรอกอีเมลและรหัสผ่าน');
+                return;
+            }
+        
+            try {
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('password', password);
+        
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    body: formData
+                });
+        
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+        
+                const data = await response.json();
+        
+                if (data.success) {
+                    // ไม่ต้องเก็บ token แล้ว เพราะใช้ PHP session
+                    
+                    // ตรวจสอบ role และนำทางไปยังหน้าที่เหมาะสม
+                    if (data.role === 'admin') {
+                        window.location.href = 'admin/admin_dashboard.html';  // เปลี่ยนเป็น .php
+                    } else {
+                        window.location.href = 'main.php';
+                    }
+                } else {
+                    // ตรวจสอบว่าเป็นการระงับบัญชีหรือไม่
+                    if (data.suspended) {
+                        // แสดงข้อความแจ้งเตือนพิเศษสำหรับบัญชีที่ถูกระงับ
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'บัญชีถูกระงับ',
+                            text: data.message,
+                            confirmButtonColor: '#4CAF50',
+                            footer: '<p class="text-gray-600">หากต้องการข้อมูลเพิ่มเติม โปรดติดต่อผู้ดูแลระบบ</p>'
+                        });
+                    } else {
+                        // แสดงข้อความแจ้งเตือนทั่วไป
+                        showAlert(data.message || 'เข้าสู่ระบบไม่สำเร็จ');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+            }
+        });
+
+        // ฟังก์ชันแสดง alert
+        function showAlert(message) {
+            // ใช้ SweetAlert2 แทน alert แบบเดิม
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: message,
+                confirmButtonColor: '#4CAF50'
+            });
+        }
+
+        // แสดงฟอร์มลืมรหัสผ่าน
+         document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    loginSection.classList.add('hidden');        // ซ่อนทั้งคอนเทนเนอร์หน้าล็อกอิน
+    forgotSection.classList.remove('hidden');    // แสดงคอนเทนเนอร์ลืมรหัสผ่าน
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+        // เมื่อกดปุ่มกลับไปหน้าเข้าสู่ระบบ
+        document.getElementById('backToLogin').addEventListener('click', function() {
+    forgotSection.classList.add('hidden');       // ซ่อนส่วนลืมรหัสผ่าน
+    loginSection.classList.remove('hidden');     // แสดงส่วนล็อกอิน
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+        // เมื่อกรอกอีเมลเพื่อส่งลิงก์ตั้งรหัสผ่าน
+        document.getElementById('emailForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('forgotEmail').value.trim();
+
+    if (!email) {
+        Swal.fire({ icon: 'warning', title: 'กรุณากรอกอีเมล', confirmButtonColor: '#4CAF50' });
+        return;
+    }
+
+    // แสดงสถานะกำลังโหลด
+    Swal.fire({
+        title: 'กำลังส่งคำขอ...',
+        text: 'กรุณารอสักครู่',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    try {
+        const formData = new FormData();
+        formData.append('email', email);
+
+        const response = await fetch('forgot_password.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'ส่งคำขอแล้ว',
+                text: data.message,
+                confirmButtonColor: '#4CAF50'
+            }).then(() => {
+                document.getElementById('backToLogin').click();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: data.message,
+                confirmButtonColor: '#4CAF50'
+            });
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+            confirmButtonColor: '#4CAF50'
+        });
+    }
+});
+    </script>
+    <script>
+      // Toggle show/hide password without duplicating buttons
+      (function(){
+        const input = document.getElementById('password');
+        const btn = document.getElementById('togglePassword');
+        if (!input || !btn) return;
+        const eyeOpen = btn.querySelector('.eye-open');
+        const eyeOff  = btn.querySelector('.eye-off');
+        btn.addEventListener('click', ()=>{
+          const show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          if (eyeOpen && eyeOff){
+            eyeOpen.classList.toggle('hidden', show);
+            eyeOff.classList.toggle('hidden', !show);
+          }
+        });
+      })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin Dashboard - BinBuddy</title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+            rel="stylesheet">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+        }
+        
+        .stats-card {
+            transition: all 0.3s ease;
+            background: linear-gradient(to bottom right, #ffffff, #f9fafb);
+            border-radius: 1rem;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .activity-item {
+            transition: all 0.2s ease;
+        }
+        
+        .activity-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .badge-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+            }
+        }
+        
+        /* Skeleton loading animation */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        /* Custom scrollbar for the activities list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cccccc;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #b3b3b3;
+        }
+
+        /* Quick action buttons */
+        .quick-action {
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .quick-action::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right, 
+                rgba(255, 255, 255, 0.2), 
+                rgba(255, 255, 255, 0), 
+                rgba(255, 255, 255, 0.2)
+            );
+            transform: rotate(45deg);
+            z-index: 1;
+            transition: all 0.7s ease;
+            opacity: 0;
+        }
+        
+        .quick-action:hover::before {
+            opacity: 1;
+            left: 100%;
+        }
+        
+        /* Chart animation */
+        .chart-animate {
+            animation: chartFadeIn 1s ease-out;
+        }
+        
+        @keyframes chartFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <!-- Navigation containers -->
+        <div id="navbar-container"></div>
+
+        <!-- Main Content -->
+        <div class="pt-16 md:ml-64 transition-all duration-300">
+            <div class="p-4 md:p-6 max-w-7xl mx-auto">
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner"
+                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300">
+                    <div class="bg-white p-5 rounded-lg flex flex-col items-center">
+                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mb-3"></div>
+                        <span>กำลังโหลดข้อมูล...</span>
+                    </div>
+                </div>
+
+                <!-- Page Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-semibold text-gray-800">แดชบอร์ดผู้ดูแลระบบ</h1>
+                        <p class="text-sm text-gray-500">ยินดีต้อนรับ! นี่คือข้อมูลภาพรวมของระบบ</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span id="lastUpdated" class="text-sm text-gray-500"></span>
+                        <button id="refreshButton" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                            <i class="fas fa-sync-alt text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error Alert -->
+                <div id="errorAlert"
+                    class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg shadow-md transform transition-all duration-300">
+                    <div class="flex items-center">
+                        <i
+                            class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+                     
+                    </div>
+                    <button id="closeErrorBtn" class="absolute top-3 right-3 text-red-500 hover:text-red-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Alert Banner for Pending Tasks -->
+                <div id="pendingTasksAlert"
+                    class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-lg shadow-md transform transition-all duration-300">
+                    <div class="flex items-center">
+                        <i
+                            class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>
+                        <div>
+                            <h3
+                                class="text-yellow-700 font-medium">แจ้งเตือนที่ต้องดำเนินการ</h3>
+                            <p id="pendingTasksMessage"
+                                class="text-yellow-700"></p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex space-x-2">
+                        <a href="manage_posts.html" class="text-sm px-3 py-1 bg-yellow-200 hover:bg-yellow-300 text-yellow-900 rounded-full transition-colors">
+                            ตรวจสอบโพสต์ 
+                            <span id="pendingPostsBtnCount" class="font-semibold">0</span>
+                        </a>
+                        <a href="manage_comment.html" class="text-sm px-3 py-1 bg-yellow-200 hover:bg-yellow-300 text-yellow-900 rounded-full transition-colors">
+                            ตรวจสอบรายงาน 
+                            <span id="commentReportsBtnCount" class="font-semibold">0</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+                    <!-- โพสต์ทั้งหมด -->
+                    <div class="stats-card bg-white rounded-xl shadow-md p-6 border-t-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i
+                                    class="fas fa-file-alt text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="text-xs text-gray-500 flex items-center">
+                                <span id="totalPostsChange" class="mx-1"></span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h2 class="text-gray-500 text-sm">โพสต์ทั้งหมด</h2>
+                            <div class="flex items-end">
+                                <p id="totalPosts"
+                                    class="text-3xl font-bold text-gray-700">0</p>
+                                <a href="manage_posts.html?status=all" class="ml-2 text-xs text-blue-500 hover:text-blue-700 transition-colors">ดูทั้งหมด</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- โพสต์ที่รอตรวจสอบ -->
+                    <div class="stats-card bg-white rounded-xl shadow-md p-6 border-t-4 border-amber-500">
+                        <div class="flex items-center justify-between">
+                            <div class="bg-amber-100 p-3 rounded-full">
+                                <i
+                                    class="fas fa-bell text-amber-600 text-xl"></i>
+                            </div>
+                            <span id="pendingPostsBadge"
+                                class="hidden badge-pulse bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                ต้องดำเนินการ
+                            </span>
+                        </div>
+                        <div class="mt-4">
+                            <h2
+                                class="text-gray-500 text-sm">โพสต์ที่รอตรวจสอบ</h2>
+                            <div class="flex items-end">
+                                <p id="pendingPosts"
+                                    class="text-3xl font-bold text-gray-700">0</p>
+                                <a href="manage_posts.html?status=pending" class="ml-2 text-xs text-amber-500 hover:text-amber-700 transition-colors">จัดการ</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- รายงานคอมเมนต์ -->
+                    <div class="stats-card bg-white rounded-xl shadow-md p-6 border-t-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div class="bg-red-100 p-3 rounded-full">
+                                <i class="fas fa-flag text-red-600 text-xl"></i>
+                            </div>
+                            <span id="commentReportsBadge"
+                                class="hidden badge-pulse bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                ต้องดำเนินการ
+                            </span>
+                        </div>
+                        <div class="mt-4">
+                            <h2
+                                class="text-gray-500 text-sm">รายงานคอมเมนต์</h2>
+                            <div class="flex items-end">
+                                <p id="commentReports"
+                                    class="text-3xl font-bold text-gray-700">0</p>
+                                <a href="manage_comment.html?status=pending" class="ml-2 text-xs text-red-500 hover:text-red-700 transition-colors">จัดการ</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ผู้ใช้ทั้งหมด -->
+                    <div class="stats-card bg-white rounded-xl shadow-md p-6 border-t-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i
+                                    class="fas fa-users text-green-600 text-xl"></i>
+                            </div>
+                            <div class="text-xs text-gray-500 flex items-center">
+                                <span id="totalUsersChange" class="mx-1"></span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h2 class="text-gray-500 text-sm">ผู้ใช้ทั้งหมด</h2>
+                            <div class="flex items-end">
+                                <p id="totalUsers"
+                                    class="text-3xl font-bold text-gray-700">0</p>
+                                <a href="manage-users.html" class="ml-2 text-xs text-green-500 hover:text-green-700 transition-colors">ดูทั้งหมด</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Activities -->
+                    <!-- Activity Chart -->
+<div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">ภาพรวมกิจกรรม</h2>
+        <div class="flex space-x-2">
+            <select id="metric-select" class="border border-gray-300 rounded-md p-1 text-sm">
+                <option value="posts">โพสต์</option>
+                <option value="reports">รายงาน</option>
+                <option value="users">ผู้ใช้</option>
+            </select>
+            <select id="timeframe-select" class="border border-gray-300 rounded-md p-1 text-sm">
+                <option value="daily">รายวัน</option>
+                <option value="weekly">รายสัปดาห์</option>
+                <option value="monthly">รายเดือน</option>
+                <option value="yearly">รายปี</option>
+
+            </select>
+        </div>
+    </div>
+    <div class="relative">
+        <canvas id="activityChart" class="chart-animate"></canvas>
+    </div>
+</div>
+
+                    <!-- Quick Actions & Summary -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">การดำเนินการด่วน</h2>
+                        
+                        <!-- Quick Action Buttons -->
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <a href="manage_waste.html" class="quick-action flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 p-4 rounded-lg transition-colors">
+                                <i class="fas fa-plus-circle text-green-600 text-xl mb-2"></i>
+                                <span class="text-sm text-center">เพิ่มข้อมูลขยะ</span>
+                            </a>
+                            <a href="manage_posts.html?status=pending" class="quick-action flex flex-col items-center justify-center bg-amber-50 hover:bg-amber-100 p-4 rounded-lg transition-colors">
+                                <i class="fas fa-tasks text-amber-600 text-xl mb-2"></i>
+                                <span class="text-sm text-center">ตรวจสอบโพสต์</span>
+                            </a>
+                            <a href="manage_comment.html?status=pending" class="quick-action flex flex-col items-center justify-center bg-red-50 hover:bg-red-100 p-4 rounded-lg transition-colors">
+                                <i class="fas fa-flag text-red-600 text-xl mb-2"></i>
+                                <span class="text-sm text-center">จัดการรายงาน</span>
+                            </a>
+                            <a href="admin_logs.php" class="quick-action flex flex-col items-center justify-center bg-blue-50 hover:bg-blue-100 p-4 rounded-lg transition-colors">
+                                <i class="fas fa-history text-blue-600 text-xl mb-2"></i>
+                                <span class="text-sm text-center">ประวัติการทำงาน</span>
+                            </a>
+                        </div>
+                        
+                        <!-- Summary Data -->
+                        
+                        
+                    
+                    </div>
+                </div>
+                
+                <!-- System Status Section -->
+                
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+        <script>
+        // ดึงข้อมูลสถานะระบบ
+        async function fetchSystemStatus() {
+            try {
+                const response = await fetch('get_system_status.php');
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'ไม่สามารถโหลดข้อมูลสถานะระบบได้');
+                }
+                
+                const data = result.data;
+                
+                // อัปเดตแถบแสดงสถานะและข้อมูล
+                const cpuUsage = document.getElementById('cpuUsage');
+                const cpuUsageBar = document.getElementById('cpuUsageBar');
+                const memoryUsage = document.getElementById('memoryUsage');
+                const memoryUsageBar = document.getElementById('memoryUsageBar');
+                const diskUsage = document.getElementById('diskUsage');
+                const diskUsageBar = document.getElementById('diskUsageBar');
+                const uptimeInfo = document.getElementById('uptimeInfo');
+                const uptimeBar = document.getElementById('uptimeBar');
+                const systemStatusBadge = document.getElementById('systemStatusBadge');
+                
+                // อัปเดตข้อมูล CPU
+                cpuUsage.textContent = `${data.cpu_usage}%`;
+                cpuUsageBar.style.width = `${data.cpu_usage}%`;
+                
+                // ปรับสีตามค่า
+                if (data.cpu_usage > 80) {
+                    cpuUsageBar.classList.remove('bg-green-500', 'bg-amber-500');
+                    cpuUsageBar.classList.add('bg-red-500');
+                } else if (data.cpu_usage > 60) {
+                    cpuUsageBar.classList.remove('bg-green-500', 'bg-red-500');
+                    cpuUsageBar.classList.add('bg-amber-500');
+                } else {
+                    cpuUsageBar.classList.remove('bg-amber-500', 'bg-red-500');
+                    cpuUsageBar.classList.add('bg-green-500');
+                }
+                
+                // อัปเดตข้อมูลหน่วยความจำ
+                memoryUsage.textContent = `${data.memory_usage}%`;
+                memoryUsageBar.style.width = `${data.memory_usage}%`;
+                
+                // อัปเดตข้อมูลพื้นที่เก็บข้อมูล
+                diskUsage.textContent = `${data.disk_usage}%`;
+                diskUsageBar.style.width = `${data.disk_usage}%`;
+                
+                // อัปเดตข้อมูล Uptime
+                uptimeInfo.textContent = `${data.uptime.days} วัน ${data.uptime.hours} ชั่วโมง`;
+                
+                // ตั้งค่าเปอร์เซ็นต์แถบ uptime (คำนวณจากค่าสูงสุด 30 วัน)
+                const uptimePercent = Math.min((data.uptime.days / 30) * 100, 100);
+                uptimeBar.style.width = `${uptimePercent}%`;
+                
+                // ตรวจสอบสถานะระบบโดยรวม
+                let systemOK = true;
+                if (data.cpu_usage > 90 || data.memory_usage > 90 || data.disk_usage > 90) {
+                    systemOK = false;
+                }
+                
+                // อัปเดตแถบสถานะ
+                if (systemOK) {
+                    systemStatusBadge.className = 'bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full';
+                    systemStatusBadge.innerHTML = '<i class="fas fa-check-circle mr-1"></i>ระบบทำงานปกติ';
+                } else {
+                    systemStatusBadge.className = 'bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full';
+                    systemStatusBadge.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i>ระบบทำงานหนัก';
+                }
+                
+            } catch (error) {
+                console.error('Error fetching system status:', error);
+            }
+        }
+
+
+
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // โหลด navbar ก่อน
+            loadNavbar();
+            
+            // จากนั้นจึงเริ่มต้นโหลดข้อมูลแดชบอร์ด
+            fetchDashboardData();
+            initActivityChart();
+            fetchSystemStatus();
+            
+            // Set up refresh button
+            document.getElementById('refreshButton').addEventListener('click', function() {
+                this.classList.add('animate-spin');
+                Promise.all([
+                    fetchDashboardData(),
+                    updateActivityChart(),
+                    fetchSystemStatus()
+                ]).finally(() => {
+                    setTimeout(() => {
+                        this.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+            
+            // Set up error alert close button
+            document.getElementById('closeErrorBtn')?.addEventListener('click', function() {
+                document.getElementById('errorAlert').classList.add('hidden');
+            });
+            
+            // Auto-refresh dashboard data every 5 minutes
+            setInterval(() => {
+                fetchDashboardData();
+                updateActivityChart();
+                fetchSystemStatus(); //
+            }, 300000);
+        });
+           
+        // Format date to Thai locale
+        function formatThaiDate(dateString) {
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return new Date(dateString).toLocaleDateString('th-TH', options);
+        }
+        
+        // Format time difference
+        function formatTimeDiff(dateString) {
+            const now = new Date();
+            const past = new Date(dateString);
+            const diffMs = now - past;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            
+            if (diffDay > 0) {
+                return `${diffDay} วันที่แล้ว`;
+            } else if (diffHour > 0) {
+                return `${diffHour} ชั่วโมงที่แล้ว`;
+            } else if (diffMin > 0) {
+                return `${diffMin} นาทีที่แล้ว`;
+            } else {
+                return 'เมื่อสักครู่';
+            }
+        }
+
+        // Previous values for stat changes
+        let prevStats = {
+            totalPosts: 0,
+            totalUsers: 0
+        };
+
+        // Fetch dashboard data
+        async function fetchDashboardData() {
+            try {
+                document.getElementById('loadingSpinner').classList.remove('hidden');
+                
+                // เรียกใช้ API จริงเพื่อดึงข้อมูลจากฐานข้อมูล
+                const response = await fetch('get_dashboard_data.php');
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to fetch dashboard data');
+                }
+
+                // Store previous values before updating
+                prevStats = {
+                    totalPosts: parseInt(document.getElementById('totalPosts').textContent) || 0,
+                    totalUsers: parseInt(document.getElementById('totalUsers').textContent) || 0
+                };
+
+                updateDashboard(result.data);
+                
+                // Update last updated time
+                document.getElementById('lastUpdated').textContent = `อัปเดตล่าสุด: ${formatThaiDate(new Date())}`;
+                
+                // Hide skeleton loaders
+                document.querySelector('.skeleton-activities').style.display = 'none';
+            } catch (error) {
+                showError(error.message || 'ไม่สามารถโหลดข้อมูลได้');
+            } finally {
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            }
+        }
+
+        function updateDashboard(data) {
+            // Update statistics
+            document.getElementById('totalPosts').textContent = data.total_posts;
+            document.getElementById('pendingPosts').textContent = data.pending_posts;
+            document.getElementById('commentReports').textContent = data.comment_reports;
+            document.getElementById('totalUsers').textContent = data.total_users;
+        
+            // Update stats change indicators
+            updateStatsChange('totalPosts', data.total_posts, prevStats.totalPosts);
+            updateStatsChange('totalUsers', data.total_users, prevStats.totalUsers);
+            
+            // Update button counts
+            document.getElementById('pendingPostsBtnCount').textContent = data.pending_posts;
+            document.getElementById('commentReportsBtnCount').textContent = data.comment_reports;
+        
+            // Show/hide pending tasks badges
+            const pendingPostsBadge = document.getElementById('pendingPostsBadge');
+            const commentReportsBadge = document.getElementById('commentReportsBadge');
+            
+            pendingPostsBadge.classList.toggle('hidden', data.pending_posts === 0);
+            commentReportsBadge.classList.toggle('hidden', data.comment_reports === 0);
+        
+            // Update pending tasks alert
+            const pendingTasksAlert = document.getElementById('pendingTasksAlert');
+            const pendingTasksMessage = document.getElementById('pendingTasksMessage');
+            
+            if (data.pending_posts > 0 || data.comment_reports > 0) {
+                pendingTasksMessage.textContent = 
+                    `คุณมีโพสต์ที่รอการตรวจสอบ ${data.pending_posts} รายการ และ การรายงานคอมเมนต์ ${data.comment_reports} รายการ`;
+                pendingTasksAlert.classList.remove('hidden');
+            } else {
+                pendingTasksAlert.classList.add('hidden');
+            }
+        
+            // Update recent activities
+            const recentActivitiesContainer = document.getElementById('recentActivities');
+            
+            // Clear previous activities
+            while (recentActivitiesContainer.firstChild && 
+                  !recentActivitiesContainer.firstChild.classList?.contains('skeleton-activities')) {
+                recentActivitiesContainer.removeChild(recentActivitiesContainer.firstChild);
+            }
+        
+            // Add new activities
+            data.recent_activities.forEach(activity => {
+                const activityEl = createActivityElement(activity);
+                recentActivitiesContainer.appendChild(activityEl);
+            });
+            
+            // Update summary data if available
+            if (data.summary) {
+                document.getElementById('mostActiveUser').textContent = data.summary.most_active_user || '-';
+                document.getElementById('popularTrashType').textContent = data.summary.popular_trash_type || '-';
+                document.getElementById('approvalRate').textContent = data.summary.approval_rate || '-';
+                document.getElementById('handledReports').textContent = data.summary.handled_reports || '-';
+            }
+            
+            // Update activity chart
+            updateActivityChart();
+        }
+        
+        function updateStatsChange(elementId, newValue, oldValue) {
+            const changeElement = document.getElementById(`${elementId}Change`);
+            
+            if (changeElement) {
+                const diff = newValue - oldValue;
+                
+                if (diff > 0) {
+                    changeElement.innerHTML = `<i class="fas fa-arrow-up text-green-500"></i> ${diff}`;
+                    changeElement.classList.add('text-green-500');
+                    changeElement.classList.remove('text-red-500', 'text-gray-500');
+                } else if (diff < 0) {
+                    changeElement.innerHTML = `<i class="fas fa-arrow-down text-red-500"></i> ${Math.abs(diff)}`;
+                    changeElement.classList.add('text-red-500');
+                    changeElement.classList.remove('text-green-500', 'text-gray-500');
+                } else {
+                    changeElement.innerHTML = `<i class="fas fa-minus text-gray-500"></i>`;
+                    changeElement.classList.add('text-gray-500');
+                    changeElement.classList.remove('text-green-500', 'text-red-500');
+                }
+            }
+        }
+        
+        function createActivityElement(activity) {
+            const div = document.createElement('div');
+            div.className = 'activity-item flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors';
+            
+            const iconColor = activity.type === 'post' ? 'blue' : 'red';
+            const icon = activity.type === 'post' ? 'file-alt' : 'flag';
+            const timeDiff = formatTimeDiff(activity.date);
+            
+            // ตรวจสอบว่ามี user_image หรือไม่ ถ้าไม่มีใช้ default
+            const userImage = activity.user_image ? `../img/profile_uploads/${activity.user_image}` : '../img/profile_uploads/default-avatar.jpg';
+            
+            div.innerHTML = `
+                <div class="bg-${iconColor}-100 p-2 rounded-full mr-4 flex-shrink-0">
+                    <i class="fas fa-${icon} text-${iconColor}-600"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-gray-800 font-medium truncate">
+                        ${activity.type === 'post' ? 'โพสต์ใหม่: ' : 'รายงานคอมเมนต์: '}
+                        ${activity.description}
+                    </p>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm text-gray-500">
+                            โดย ${activity.user_name}
+                        </p>
+                        <span class="text-xs text-gray-400 flex-shrink-0" title="${formatThaiDate(activity.date)}">
+                            ${timeDiff}
+                        </span>
+                    </div>
+                </div>
+                <a href="${activity.type === 'post' ? 'manage_posts.html?status=pending' : 'manage_comment.html?status=pending'}" 
+                   class="ml-2 p-2 text-gray-400 hover:text-${iconColor}-500 transition-colors">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            `;
+            
+            return div;
+        }
+        
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorAlert.classList.remove('hidden');
+            
+            // Automatically hide after 5 seconds
+            setTimeout(() => {
+                errorAlert.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // Initialize and update activity chart
+        let activityChart = null;
+        
+        function initActivityChart() {
+    const ctx = document.getElementById('activityChart').getContext('2d');
+    
+    activityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'จำนวน',
+                    data: [],
+                    borderColor: 'rgba(59, 130, 246, 0.8)', // สีน้ำเงิน
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: {
+                            family: 'Kanit'
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(200, 200, 200, 0.2)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // อัปเดตกราฟตั้งแต่เริ่มต้น
+    updateActivityChart();
+}
+        
+        async function updateActivityChart() {
+    if (activityChart) {
+        try {
+            const metric = document.getElementById('metric-select').value;
+            const timeFrame = document.getElementById('timeframe-select').value;
+            
+            const response = await fetch(`api/get_activity_metrics.php?metric=${metric}&timeFrame=${timeFrame}`);
+            const result = await response.json();
+
+            if (result.success) {
+                activityChart.data.labels = result.data.labels;
+                activityChart.data.datasets[0].data = result.data.values;
+                activityChart.data.datasets[0].label = `${metric === 'users' ? 'ผู้ใช้' : metric === 'posts' ? 'โพสต์' : metric === 'comments' ? 'ความคิดเห็น' : 'รายงาน'}`;
+                activityChart.update();
+            } else {
+                console.error('Error fetching chart data:', result.message);
+            }
+        } catch (error) {
+            console.error('Error updating chart:', error);
+        }
+    }
+}
+document.getElementById('metric-select').addEventListener('change', updateActivityChart);
+document.getElementById('timeframe-select').addEventListener('change', updateActivityChart);
+        </script>
+        <script src="navbar.js"></script>
+    </body>
+</html>

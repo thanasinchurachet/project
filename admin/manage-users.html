@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>จัดการบัญชีผู้ใช้ - BinBuddy</title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+            rel="stylesheet">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+        }
+        
+        .user-card {
+            transition: all 0.3s ease;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .badge-success {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .badge-danger {
+            background-color: #FEE2E2;
+            color: #B91C1C;
+        }
+        
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Skeleton loading animation */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cccccc;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #b3b3b3;
+        }
+        
+        /* Tooltip styling */
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 120px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        
+        .modal-content {
+            animation: modal-in 0.3s ease-out;
+        }
+        
+        @keyframes modal-in {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <!-- Navigation containers -->
+        <div id="navbar-container"></div>
+
+        <!-- Main Content -->
+        <div class="pt-16 md:ml-64 transition-all duration-300">
+            <div class="p-4 md:p-6 max-w-7xl mx-auto">
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner"
+                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300">
+                    <div class="bg-white p-5 rounded-lg flex flex-col items-center">
+                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600 mb-3"></div>
+                        <span>กำลังโหลดข้อมูล...</span>
+                    </div>
+                </div>
+
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-semibold text-gray-800">จัดการบัญชีผู้ใช้</h1>
+                        <p class="text-sm text-gray-500">จัดการบัญชีผู้ใช้งานทั้งหมดในระบบ BinBuddy</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+                        <div class="relative">
+                            <input type="text" id="searchInput" 
+                                placeholder="ค้นหาผู้ใช้..." 
+                                class="w-full md:w-64 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                            <button class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="flex space-x-2">
+                            <select id="statusFilter" class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="active">ใช้งานได้</option>
+                                <option value="suspended">ถูกระงับ</option>
+                            </select>
+                            <button id="refreshButton" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                                <i class="fas fa-sync-alt text-gray-600"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Alert -->
+                <div id="errorAlert"
+                    class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg shadow-md transform transition-all duration-300">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+                        <div>
+                            <h3 class="text-red-800 font-medium">เกิดข้อผิดพลาด</h3>
+                            <p id="errorMessage" class="text-red-700"></p>
+                        </div>
+                    </div>
+                    <button id="closeErrorBtn" class="absolute top-3 right-3 text-red-500 hover:text-red-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Success Alert -->
+                <div id="successAlert"
+                    class="hidden bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-lg shadow-md transform transition-all duration-300">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                        <div>
+                            <h3 class="text-green-800 font-medium">ดำเนินการสำเร็จ</h3>
+                            <p id="successMessage" class="text-green-700"></p>
+                        </div>
+                    </div>
+                    <button id="closeSuccessBtn" class="absolute top-3 right-3 text-green-500 hover:text-green-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-white rounded-xl shadow-md p-6 border-t-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i class="fas fa-users text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h2 class="text-gray-500 text-sm">ผู้ใช้ทั้งหมด</h2>
+                            <p id="totalUsers" class="text-3xl font-bold text-gray-700">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6 border-t-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-user-check text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h2 class="text-gray-500 text-sm">ผู้ใช้ที่ใช้งานได้</h2>
+                            <p id="activeUsers" class="text-3xl font-bold text-gray-700">0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6 border-t-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div class="bg-red-100 p-3 rounded-full">
+                                <i class="fas fa-user-lock text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h2 class="text-gray-500 text-sm">ผู้ใช้ที่ถูกระงับ</h2>
+                            <p id="suspendedUsers" class="text-3xl font-bold text-gray-700">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users List -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">รายชื่อผู้ใช้ทั้งหมด</h2>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ลำดับ
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ผู้ใช้
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        อีเมล
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        สถานะ
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        กิจกรรม
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        การจัดการ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="usersTableBody">
+                                <!-- Users will be loaded here -->
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                        กำลังโหลดข้อมูลผู้ใช้...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="mt-6 flex justify-between items-center">
+                        <div class="text-sm text-gray-500">
+                            แสดง <span id="showingFrom">1</span>-<span id="showingTo">10</span> จาก <span id="totalItems">0</span> รายการ
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button id="prevPage" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                ก่อนหน้า
+                            </button>
+                            <nav id="usersPagination" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"></nav>
+                            <button id="nextPage" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                ถัดไป
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+
+        <!-- Suspend User Modal -->
+        <div id="suspendModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="modal-content bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div class="p-6">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">ระงับบัญชีผู้ใช้</h3>
+                        <button class="close-modal text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="py-4">
+                        <input type="hidden" id="suspendUserId">
+                        <p class="mb-4">คุณกำลังจะระงับบัญชีของ <span id="suspendUserName" class="font-medium"></span></p>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ระยะเวลาการระงับ:</label>
+                            <select id="suspensionDuration" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="1">1 วัน</option>
+                                <option value="3">3 วัน</option>
+                                <option value="7">7 วัน</option>
+                                <option value="15">15 วัน</option>
+                                <option value="30" selected>30 วัน</option>
+                                <option value="permanent">ถาวร</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">เหตุผลในการระงับ:</label>
+                            <textarea id="suspensionReason" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="ระบุเหตุผลในการระงับบัญชี..."></textarea>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="notifyUser" type="checkbox" class="h-4 w-4 text-green-600 border-gray-300 rounded" checked>
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="notifyUser" class="font-medium text-gray-700">ส่งการแจ้งเตือนไปยังผู้ใช้</label>
+                                <p class="text-gray-500">ผู้ใช้จะได้รับการแจ้งเตือนถึงการระงับบัญชีผ่านทางอีเมลและการแจ้งเตือนในระบบ</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 border-t pt-3">
+                        <button class="close-modal px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                            ยกเลิก
+                        </button>
+                        <button id="confirmSuspend" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors">
+                            ระงับบัญชี
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unsuspend User Modal -->
+        <div id="unsuspendModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="modal-content bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div class="p-6">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">ยกเลิกการระงับบัญชี</h3>
+                        <button class="close-modal text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="py-4">
+                        <input type="hidden" id="unsuspendUserId">
+                        <p class="mb-4">คุณกำลังจะยกเลิกการระงับบัญชีของ <span id="unsuspendUserName" class="font-medium"></span></p>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="notifyUnsuspendUser" type="checkbox" class="h-4 w-4 text-green-600 border-gray-300 rounded" checked>
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="notifyUnsuspendUser" class="font-medium text-gray-700">ส่งการแจ้งเตือนไปยังผู้ใช้</label>
+                                <p class="text-gray-500">ผู้ใช้จะได้รับการแจ้งเตือนว่าบัญชีสามารถใช้งานได้อีกครั้ง</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 border-t pt-3">
+                        <button class="close-modal px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                            ยกเลิก
+                        </button>
+                        <button id="confirmUnsuspend" class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+                            ยกเลิกการระงับ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restrict Actions Modal -->
+        <div id="restrictModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="modal-content bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                <div class="p-6">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">จำกัดการใช้งานบัญชี</h3>
+                        <button class="close-modal text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="py-4">
+                        <input type="hidden" id="restrictUserId">
+                        <p class="mb-4">คุณกำลังจะจำกัดการใช้งานของ <span id="restrictUserName" class="font-medium"></span></p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center">
+                                <input id="restrictComment" type="checkbox" class="h-4 w-4 text-green-600 border-gray-300 rounded">
+                                <label for="restrictComment" class="ml-2 block text-sm text-gray-700">
+                                    ระงับการคอมเมนต์
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="restrictPost" type="checkbox" class="h-4 w-4 text-green-600 border-gray-300 rounded">
+                                <label for="restrictPost" class="ml-2 block text-sm text-gray-700">
+                                    ระงับการโพสต์
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ระยะเวลาการจำกัด:</label>
+                            <select id="restrictionDuration" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="1">1 วัน</option>
+                                <option value="3">3 วัน</option>
+                                <option value="7" selected>7 วัน</option>
+                                <option value="15">15 วัน</option>
+                                <option value="30">30 วัน</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">เหตุผลในการจำกัดการใช้งาน:</label>
+                            <textarea id="restrictionReason" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="ระบุเหตุผลในการจำกัดการใช้งาน..."></textarea>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="notifyRestrictUser" type="checkbox" class="h-4 w-4 text-green-600 border-gray-300 rounded" checked>
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="notifyRestrictUser" class="font-medium text-gray-700">ส่งการแจ้งเตือนไปยังผู้ใช้</label>
+                                <p class="text-gray-500">ผู้ใช้จะได้รับการแจ้งเตือนถึงการจำกัดการใช้งานผ่านทางการแจ้งเตือนในระบบ</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 border-t pt-3">
+                        <button class="close-modal px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                            ยกเลิก
+                        </button>
+                        <button id="confirmRestrict" class="px-4 py-2 text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors">
+                            จำกัดการใช้งาน
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View User Details Modal -->
+        <div id="userDetailsModal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="modal-content bg-white rounded-lg shadow-xl max-w-3xl w-full mx-4">
+                <div class="p-6">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">รายละเอียดผู้ใช้</h3>
+                        <button class="close-modal text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="py-4 space-y-6">
+                        <div class="flex flex-col items-center justify-center text-center">
+                            <div>
+                                <h4 id="userDetailName" class="text-xl font-medium text-gray-900">-</h4>
+                                <p id="userDetailEmail" class="text-gray-600">-</p>
+                                <div class="mt-2 flex justify-center items-center">
+                                    <span id="userDetailStatus" class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        ใช้งานได้
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">กิจกรรมล่าสุด</h5>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">โพสต์ทั้งหมด:</span>
+                                        <span id="userDetailTotalPosts" class="font-medium">0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">คอมเมนต์ทั้งหมด:</span>
+                                        <span id="userDetailTotalComments" class="font-medium">0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">การรายงาน:</span>
+                                        <span id="userDetailReports" class="font-medium">0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">กิจกรรมล่าสุด:</span>
+                                        <span id="userDetailLastActivity" class="font-medium">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h5 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">ประวัติการถูกจำกัดการใช้งาน</h5>
+                                <div id="userDetailRestrictionHistory" class="space-y-3">
+                                    <div class="text-sm text-gray-500 text-center py-2">ไม่พบประวัติการจำกัดการใช้งาน</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">โพสต์ล่าสุด</h5>
+                            <div id="userDetailRecentPosts" class="space-y-3 max-h-40 overflow-y-auto custom-scrollbar">
+                                <div class="text-sm text-gray-500 text-center py-2">ไม่พบโพสต์</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 border-t pt-3">
+                        <button class="close-modal px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                            ปิด
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // โหลด navbar
+            loadNavbar();
+            
+            // จากนั้นจึงเริ่มต้นโหลดข้อมูลผู้ใช้
+            fetchUsers();
+            
+            // Set up refresh button
+            document.getElementById('refreshButton').addEventListener('click', function() {
+                this.classList.add('animate-spin');
+                fetchUsers().finally(() => {
+                    setTimeout(() => {
+                        this.classList.remove('animate-spin');
+                    }, 500);
+                });
+            });
+            
+            // Set up error alert close button
+            document.getElementById('closeErrorBtn')?.addEventListener('click', function() {
+                document.getElementById('errorAlert').classList.add('hidden');
+            });
+            
+            // Set up success alert close button
+            document.getElementById('closeSuccessBtn')?.addEventListener('click', function() {
+                document.getElementById('successAlert').classList.add('hidden');
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', debounce(function() {
+                currentPage = 1;
+                fetchUsers();
+            }, 300));
+            
+            // Status filter
+            const statusFilter = document.getElementById('statusFilter');
+            statusFilter.addEventListener('change', function() {
+                currentPage = 1;
+                fetchUsers();
+            });
+            
+            // Pagination
+            document.getElementById('prevPage').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchUsers();
+                }
+            });
+            
+            document.getElementById('nextPage').addEventListener('click', function() {
+                // ใช้จำนวนหน้าจาก API (อัปเดตใน fetchUsers)
+                const totalPages = window.__usersTotalPages || 1;
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    fetchUsers();
+                }
+            });
+            
+            // Close modals when clicking close button or outside
+            document.querySelectorAll('.close-modal').forEach(button => {
+                button.addEventListener('click', closeAllModals);
+            });
+            
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeAllModals();
+                    }
+                });
+            });
+            
+            // Set up suspend user modal
+            document.getElementById('confirmSuspend').addEventListener('click', suspendUser);
+            
+            // Set up unsuspend user modal
+            document.getElementById('confirmUnsuspend').addEventListener('click', unsuspendUser);
+            
+            // Set up restrict user modal
+            document.getElementById('confirmRestrict').addEventListener('click', restrictUser);
+        });
+        
+        // ตัวแปรสำหรับจัดการข้อมูลผู้ใช้
+        let allUsers = [];
+        let filteredUsers = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        // เก็บค่ารวมจาก API เพื่อไม่ให้การ์ดสถิติแสดงแค่จำนวนในหน้านี้
+        const apiTotals = { total: 0, active: 0, suspended: 0 };
+        
+        // ฟังก์ชัน Debounce สำหรับการค้นหา
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(this, args);
+                }, wait);
+            };
+        }
+        
+        // ฟังก์ชันดึงข้อมูลผู้ใช้ทั้งหมด
+        // ฟังก์ชันดึงข้อมูลผู้ใช้ทั้งหมด
+async function fetchUsers() {
+    try {
+        document.getElementById('loadingSpinner').classList.remove('hidden');
+        
+        // เปลี่ยนเป็นเรียกใช้ API จริง
+        const searchTerm = document.getElementById('searchInput').value;
+        const statusFilter = document.getElementById('statusFilter').value;
+        
+        const response = await fetch(`api/get_users.php?page=${currentPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}&status=${encodeURIComponent(statusFilter)}&_=${Date.now()}`);
+        
+        if (!response.ok) {
+            throw new Error('การเชื่อมต่อกับเซิร์ฟเวอร์ล้มเหลว');
+        }
+        
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || 'ไม่สามารถดึงข้อมูลผู้ใช้ได้');
+        }
+        
+        // อัปเดตข้อมูลผู้ใช้ในหน้านี้
+        allUsers = result.data.users;
+        filteredUsers = [...allUsers];
+
+        // เก็บยอดรวมจาก API เพื่อใช้กับการ์ดสถิติ
+        apiTotals.total = result.data.total || 0;
+
+        // เรียก API เพิ่มเติมเพื่อหาจำนวนผู้ใช้ตามสถานะ (active/suspended)
+        try {
+            const [resActive, resSuspended] = await Promise.all([
+                fetch(`api/get_users.php?page=1&limit=1&status=active&search=${encodeURIComponent(searchTerm)}&_=${Date.now()}`),
+                fetch(`api/get_users.php?page=1&limit=1&status=suspended&search=${encodeURIComponent(searchTerm)}&_=${Date.now()}`)
+            ]);
+            const [jsonActive, jsonSuspended] = await Promise.all([resActive.json(), resSuspended.json()]);
+            apiTotals.active = jsonActive?.data?.total ?? 0;
+            apiTotals.suspended = jsonSuspended?.data?.total ?? 0;
+        } catch (_) {
+            // ถ้าเรียกไม่สำเร็จ จะคำนวณจากหน้านี้แทน (อาจไม่ตรงทั้งหมด)
+            apiTotals.active = allUsers.filter(u => u.status === 'active').length;
+            apiTotals.suspended = allUsers.filter(u => u.status === 'suspended').length;
+        }
+
+        // อัปเดตข้อมูลการแบ่งหน้า
+        document.getElementById('totalItems').textContent = result.data.total;
+        document.getElementById('showingFrom').textContent = result.data.total > 0 ? ((result.data.page - 1) * result.data.limit) + 1 : 0;
+        document.getElementById('showingTo').textContent = Math.min(result.data.page * result.data.limit, result.data.total);
+
+        // อัปเดตปุ่มการแบ่งหน้า
+        document.getElementById('prevPage').disabled = result.data.page <= 1;
+        document.getElementById('nextPage').disabled = result.data.page >= result.data.pages;
+        window.__usersTotalPages = result.data.pages || 1;
+        updateUsersPagination(window.__usersTotalPages, result.data.page);
+
+        // อัปเดตสถิติผู้ใช้ด้วยยอดรวมจาก API
+        updateUserStats();
+
+        // แสดงข้อมูลผู้ใช้
+        renderUsers();
+        
+        document.getElementById('loadingSpinner').classList.add('hidden');
+        
+        return Promise.resolve();
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        showError(error.message || 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้');
+        document.getElementById('loadingSpinner').classList.add('hidden');
+        
+        return Promise.reject(error);
+    }
+}
+        
+        // อัปเดตสถิติผู้ใช้
+        function updateUserStats() {
+        // ใช้ยอดรวมจาก API ให้แสดงตรงกับแดชบอร์ด
+        const totalUsers = apiTotals.total;
+        const activeUsers = apiTotals.active;
+        const suspendedUsers = apiTotals.suspended;
+
+        document.getElementById('totalUsers').textContent = totalUsers;
+        document.getElementById('activeUsers').textContent = activeUsers;
+        document.getElementById('suspendedUsers').textContent = suspendedUsers;
+        }
+        
+        // กรองข้อมูลผู้ใช้
+        function filterUsers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            filteredUsers = allUsers.filter(user => {
+                const matchesSearch = 
+                    user.name.toLowerCase().includes(searchTerm) || 
+                    user.email.toLowerCase().includes(searchTerm);
+                
+                const matchesStatus = 
+                    statusFilter === 'all' || 
+                    user.status === statusFilter;
+                
+                return matchesSearch && matchesStatus;
+            });
+            
+            currentPage = 1; // รีเซ็ตหน้าปัจจุบันเมื่อมีการกรอง
+            renderUsers();
+        }
+        function handleProfilePath(profilePath) {
+            // กรณีไม่มีค่า หรือเป็นสตริงว่าง
+            if (!profilePath) return '../img/profile_uploads/default.jpg';
+            
+            // ถ้าเป็นพาธเต็มอยู่แล้ว
+            if (profilePath.startsWith('../img/profile_uploads/') || 
+                profilePath.startsWith('/img/profile_uploads/') ||
+                profilePath.startsWith('img/profile_uploads/')) {
+              
+              // ปรับให้มีรูปแบบที่ถูกต้อง
+              if (profilePath.startsWith('/img/')) {
+                return '.' + profilePath;
+              } else if (profilePath.startsWith('img/')) {
+                return '../' + profilePath;
+              }
+              return profilePath;
+            }
+            
+            // ถ้าเป็นแค่ชื่อไฟล์
+            return `../img/profile_uploads/${profilePath}`;
+        }
+        
+        // แสดงข้อมูลผู้ใช้ (ใช้ข้อมูลจาก API ตามหน้า)
+        function renderUsers() {
+            const tableBody = document.getElementById('usersTableBody');
+            tableBody.innerHTML = '';
+
+            // ถ้าไม่มีผู้ใช้ในหน้านี้
+            if (filteredUsers.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                        ไม่พบข้อมูลผู้ใช้ที่ตรงกับเงื่อนไขการค้นหา
+                    </td>
+                `;
+                tableBody.appendChild(row);
+                return;
+            }
+
+            // เริ่มลำดับจากค่าที่คำนวณใน fetchUsers
+            const fromIdx = parseInt(document.getElementById('showingFrom').textContent || '1', 10) || 1;
+
+            filteredUsers.forEach((user, idx) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                // กำหนดรูปโปรไฟล์ - ใช้ฟังก์ชันที่แก้ไขแล้ว
+                const profileImg = handleProfilePath(user.profile_img);
+                
+                // สถานะผู้ใช้
+                let statusBadge = '';
+                if (user.status === 'active') {
+                    statusBadge = `<span class="badge-success px-2.5 py-0.5 rounded-full text-xs font-medium">ใช้งานได้</span>`;
+                } else if (user.status === 'suspended') {
+                    statusBadge = `<span class="badge-danger px-2.5 py-0.5 rounded-full text-xs font-medium">ถูกระงับ</span>`;
+                }
+                
+                // ข้อมูลกิจกรรม
+                const totalPosts = user.total_posts || 0;
+                const totalComments = user.total_comments || 0;
+                const totalReports = user.total_reports || 0;
+                
+                const activityInfo = `
+                    <div class="text-sm text-gray-500">
+                        <span class="mr-2"><i class="fas fa-clipboard-list text-blue-500"></i> ${totalPosts}</span>
+                        <span class="mr-2"><i class="fas fa-comment text-green-500"></i> ${totalComments}</span>
+                        <span><i class="fas fa-flag text-red-500"></i> ${totalReports}</span>
+                    </div>
+                `;
+                
+                // มีข้อจำกัดการใช้งานหรือไม่
+                const hasRestrictions = user.restrictions && user.restrictions.length > 0;
+                const restrictionInfo = hasRestrictions ? `
+                    <div class="text-xs text-amber-500 mt-1">
+                        <i class="fas fa-exclamation-triangle mr-1"></i> มีข้อจำกัดการใช้งาน
+                    </div>
+                ` : '';
+                
+                row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${fromIdx + idx}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <img class="h-10 w-10 rounded-full object-cover" 
+                                     src="${profileImg}" 
+                                     alt="${user.name}" 
+                                     onerror="this.src='../img/profile_uploads/default.jpg'">
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                                <div class="text-sm text-gray-500">#${user.userID}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${user.email}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${statusBadge}
+                        ${restrictionInfo}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${activityInfo}
+                        <div class="text-xs text-gray-400 mt-1">ล่าสุด: ${formatTimeDiff(user.last_activity || '')}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end space-x-2">
+                            <button class="tooltip action-btn p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100" onclick="viewUserDetails(${user.userID})">
+                                <i class="fas fa-eye"></i>
+                                <span class="tooltip-text">ดูรายละเอียด</span>
+                            </button>
+                            <button class="tooltip action-btn p-1.5 bg-yellow-50 text-yellow-600 rounded-md hover:bg-yellow-100" onclick="openRestrictModal(${user.userID})">
+                                <i class="fas fa-ban"></i>
+                                <span class="tooltip-text">จำกัดการใช้งาน</span>
+                            </button>
+                            ${user.status === 'active' ? 
+                                `<button class="tooltip action-btn p-1.5 bg-red-50 text-red-600 rounded-md hover:bg-red-100" onclick="openSuspendModal(${user.userID})">
+                                    <i class="fas fa-user-lock"></i>
+                                    <span class="tooltip-text">ระงับบัญชี</span>
+                                </button>` : 
+                                `<button class="tooltip action-btn p-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100" onclick="openUnsuspendModal(${user.userID})">
+                                    <i class="fas fa-user-check"></i>
+                                    <span class="tooltip-text">ยกเลิกการระงับ</span>
+                                </button>`
+                            }
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // สร้างปุ่มเลขหน้าแบบย่อ (5 หน้าใกล้เคียง)
+        function updateUsersPagination(totalPages, apiCurrentPage) {
+            const pagination = document.getElementById('usersPagination');
+            if (!pagination) return;
+            pagination.innerHTML = '';
+            if (!totalPages || totalPages <= 1) return;
+
+            const makeBtn = (label, active, onClick, extra = '') => {
+                const btn = document.createElement('button');
+                btn.className = `relative inline-flex items-center px-3 py-1 border text-sm font-medium ${active ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white text-gray-700 hover:bg-gray-50'} ${extra}`;
+                btn.textContent = label;
+                btn.onclick = onClick;
+                return btn;
+            };
+
+            let startPage = Math.max(1, apiCurrentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+            for (let i = startPage; i <= endPage; i++) {
+                pagination.appendChild(
+                    makeBtn(String(i), apiCurrentPage === i, () => { currentPage = i; fetchUsers(); })
+                );
+            }
+        }
+        
+        // เปิด Modal ระงับบัญชี
+        window.openSuspendModal = function(userId) {
+            const user = allUsers.find(u => u.userID === userId);
+            if (!user) return;
+            
+            document.getElementById('suspendUserId').value = userId;
+            document.getElementById('suspendUserName').textContent = user.name;
+            
+            document.getElementById('suspendModal').classList.remove('hidden');
+        };
+        
+        // เปิด Modal ยกเลิกการระงับบัญชี
+        window.openUnsuspendModal = function(userId) {
+            const user = allUsers.find(u => u.userID == userId);
+            if (!user) {
+                showError('ไม่พบข้อมูลผู้ใช้');
+                return;
+            }
+            
+            document.getElementById('unsuspendUserId').value = userId;
+            document.getElementById('unsuspendUserName').textContent = user.name;
+            
+            // ตรวจสอบให้แน่ใจว่าปุ่มยืนยันมี event listener
+            const confirmButton = document.getElementById('confirmUnsuspend');
+            
+            // ลบ event listener เดิมทั้งหมด (เพื่อป้องกันการซ้ำซ้อน)
+            const newConfirmButton = confirmButton.cloneNode(true);
+            confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+            
+            // เพิ่ม event listener ใหม่
+            newConfirmButton.addEventListener('click', unsuspendUser);
+            
+            // แสดง Modal
+            document.getElementById('unsuspendModal').classList.remove('hidden');
+        };
+        
+        // เปิด Modal จำกัดการใช้งาน
+        window.openRestrictModal = function(userId) {
+            const user = allUsers.find(u => u.userID === userId);
+            if (!user) return;
+            
+            document.getElementById('restrictUserId').value = userId;
+            document.getElementById('restrictUserName').textContent = user.name;
+            
+            // รีเซ็ตค่าในฟอร์ม
+            document.getElementById('restrictComment').checked = false;
+            document.getElementById('restrictPost').checked = false;
+            document.getElementById('restrictionReason').value = '';
+            
+            document.getElementById('restrictModal').classList.remove('hidden');
+        };
+        
+        // เปิด Modal ดูรายละเอียดผู้ใช้
+        window.viewUserDetails = async function(userId) {
+            try {
+                document.getElementById('loadingSpinner').classList.remove('hidden');
+                
+                // ดึงข้อมูลประวัติการระงับและจำกัดการใช้งาน
+                const suspensionResponse = await fetch(`api/get_user_suspension_history.php?userId=${userId}`);
+                if (!suspensionResponse.ok) {
+                    throw new Error('ไม่สามารถดึงข้อมูลประวัติการระงับได้');
+                }
+                const suspensionResult = await suspensionResponse.json();
+                
+                // ดึงข้อมูลกิจกรรมของผู้ใช้
+                const activityResponse = await fetch(`api/get_user_activity.php?userId=${userId}`);
+                if (!activityResponse.ok) {
+                    throw new Error('ไม่สามารถดึงข้อมูลกิจกรรมผู้ใช้ได้');
+                }
+                const activityResult = await activityResponse.json();
+                
+                if (!suspensionResult.success || !activityResult.success) {
+                    throw new Error('ไม่สามารถดึงข้อมูลผู้ใช้ได้');
+                }
+                
+                const userData = suspensionResult.data.user;
+                const userRestrictions = suspensionResult.data.restrictions;
+                const userSuspensions = suspensionResult.data.suspensions;
+                const userActivity = activityResult.data;
+                
+                // ลบส่วนที่เกี่ยวกับรูปโปรไฟล์ออก
+                document.getElementById('userDetailName').textContent = userData.name;
+                document.getElementById('userDetailEmail').textContent = userData.email;
+                
+                // สถานะ
+                const statusEl = document.getElementById('userDetailStatus');
+                if (userData.status === 'active') {
+                    statusEl.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                    statusEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i>ใช้งานได้';
+                } else {
+                    statusEl.className = 'px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800';
+                    statusEl.innerHTML = '<i class="fas fa-ban mr-1"></i>ถูกระงับ';
+                }
+                
+                // สถิติ
+                document.getElementById('userDetailTotalPosts').textContent = userActivity.stats.total_posts || 0;
+                document.getElementById('userDetailTotalComments').textContent = userActivity.stats.total_comments || 0;
+                document.getElementById('userDetailReports').textContent = userActivity.stats.total_reports || 0;
+                document.getElementById('userDetailLastActivity').textContent = userActivity.stats.last_activity ? formatThaiDate(userActivity.stats.last_activity) : '-';
+                
+                // ประวัติการถูกจำกัดการใช้งาน
+                const restrictionHistoryEl = document.getElementById('userDetailRestrictionHistory');
+                restrictionHistoryEl.innerHTML = '';
+                
+                // รวมการระงับบัญชีและการจำกัดการใช้งาน
+                const allRestrictions = [
+                    ...(userSuspensions || []).map(item => ({...item, type: 'full'})),
+                    ...(userRestrictions || [])
+                ];
+                
+                if (allRestrictions.length > 0) {
+                    allRestrictions.forEach(restriction => {
+                        const restrictionType = restriction.type === 'full' ? 'ระงับบัญชี' : 
+                                                restriction.type === 'post' ? 'ระงับการโพสต์' : 
+                                                restriction.type === 'comment' ? 'ระงับการคอมเมนต์' :
+                                                restriction.type === 'both' ? 'ระงับการโพสต์และคอมเมนต์' : 'อื่นๆ';
+                                                
+                        const endDate = restriction.end_date === 'permanent' ? 'ถาวร' : formatThaiDate(restriction.end_date);
+                        
+                        const item = document.createElement('div');
+                        item.className = 'bg-gray-50 p-3 rounded-lg text-sm';
+                        item.innerHTML = `
+                            <div class="font-medium text-gray-700">${restrictionType}</div>
+                            <div class="text-gray-600 text-xs mt-1">${restriction.reason}</div>
+                            <div class="flex justify-between mt-2 text-xs text-gray-500">
+                                <span>เริ่ม: ${formatThaiDate(restriction.start_date)}</span>
+                                <span>สิ้นสุด: ${endDate}</span>
+                            </div>
+                        `;
+                        restrictionHistoryEl.appendChild(item);
+                    });
+                } else {
+                    restrictionHistoryEl.innerHTML = '<div class="text-sm text-gray-500 text-center py-2">ไม่พบประวัติการจำกัดการใช้งาน</div>';
+                }
+                
+                // โพสต์ล่าสุด
+                const recentPostsEl = document.getElementById('userDetailRecentPosts');
+                recentPostsEl.innerHTML = '';
+                
+                const userPosts = userActivity.posts || [];
+                
+                if (userPosts.length > 0) {
+                    userPosts.forEach(post => {
+                        const item = document.createElement('div');
+                        item.className = 'flex justify-between items-center bg-gray-50 p-3 rounded-lg';
+                        
+                        const statusClass = post.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                            post.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                            'bg-red-100 text-red-800';
+                        
+                        const statusText = post.status === 'approved' ? 'อนุมัติแล้ว' : 
+                                            post.status === 'pending' ? 'รอตรวจสอบ' : 'ถูกระงับ';
+                        
+                        item.innerHTML = `
+                            <div>
+                                <div class="font-medium text-gray-700">${post.title}</div>
+                                <div class="text-xs text-gray-500">${formatTimeDiff(post.date)}</div>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                                ${statusText}
+                            </span>
+                        `;
+                        recentPostsEl.appendChild(item);
+                    });
+                } else {
+                    recentPostsEl.innerHTML = '<div class="text-sm text-gray-500 text-center py-2">ไม่พบโพสต์</div>';
+                }
+                
+                document.getElementById('userDetailsModal').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+                showError(error.message || 'ไม่สามารถดึงข้อมูลผู้ใช้ได้');
+            } finally {
+                document.getElementById('loadingSpinner').classList.add('hidden');
+            }
+        };
+        // ระงับบัญชีผู้ใช้
+        function suspendUser() {
+            const userId = document.getElementById('suspendUserId').value;
+            const duration = document.getElementById('suspensionDuration').value;
+            const reason = document.getElementById('suspensionReason').value;
+            const notify = document.getElementById('notifyUser').checked;
+            
+            if (!reason.trim()) {
+                showError('กรุณาระบุเหตุผลในการระงับบัญชี');
+                return;
+            }
+            
+            
+            fetch('api/suspend_user.php', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, duration, reason, notify })
+            })
+            
+            // สำหรับตัวอย่าง: จำลองการระงับบัญชี
+            const userIndex = allUsers.findIndex(u => u.userID == userId);
+            if (userIndex !== -1) {
+                allUsers[userIndex].status = 'suspended';
+                
+                // สร้างข้อมูลการจำกัดการใช้งาน
+                const now = new Date();
+                let endDate;
+                
+                if (duration === 'permanent') {
+                    endDate = 'permanent';
+                } else {
+                    endDate = new Date(now);
+                    endDate.setDate(endDate.getDate() + parseInt(duration));
+                }
+                
+                const restriction = {
+                    type: 'full',
+                    reason: reason,
+                    start_date: now.toISOString().slice(0, 19).replace('T', ' '),
+                    end_date: endDate === 'permanent' ? 'permanent' : endDate.toISOString().slice(0, 19).replace('T', ' ')
+                };
+                
+                if (!allUsers[userIndex].restrictions) {
+                    allUsers[userIndex].restrictions = [];
+                }
+                
+                allUsers[userIndex].restrictions.push(restriction);
+                
+                // อัปเดตการแสดงผล
+                filteredUsers = [...allUsers];
+                filterUsers();
+                updateUserStats();
+                
+                // แสดงข้อความสำเร็จ
+                const userName = allUsers[userIndex].name;
+                showSuccess(`ระงับบัญชีของ ${userName} สำเร็จแล้ว`);
+                
+                if (notify) {
+                    console.log(`ส่งการแจ้งเตือนไปยังผู้ใช้ ${userName}`);
+                    // ในโลกจริงจะเรียกใช้ API เพื่อส่งการแจ้งเตือน
+                }
+            }
+            
+            // ปิด Modal
+            closeAllModals();
+        }
+        
+        // ยกเลิกการระงับบัญชี
+        function unsuspendUser() {
+            const userId = document.getElementById('unsuspendUserId').value;
+            const notify = document.getElementById('notifyUnsuspendUser').checked;
+            
+            if (!userId) {
+                showError('ไม่พบข้อมูลผู้ใช้');
+                return;
+            }
+            
+            // แสดง loading
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+            
+            // เรียกใช้ API ยกเลิกการระงับบัญชี
+            fetch('api/unsuspend_user.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId, notify })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('การเชื่อมต่อกับเซิร์ฟเวอร์ล้มเหลว');
+                }
+                return response.json();
+            })
+            .then(result => {
+                // ปิด loading
+                document.getElementById('loadingSpinner').classList.add('hidden');
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'ไม่สามารถยกเลิกการระงับบัญชีได้');
+                }
+                
+                // อัปเดตข้อมูลในตาราง
+                const userIndex = allUsers.findIndex(u => u.userID == userId);
+                if (userIndex !== -1) {
+                    allUsers[userIndex].status = 'active';
+                    
+                    // อัปเดตการแสดงผล
+                    filteredUsers = [...allUsers];
+                    filterUsers();
+                    updateUserStats();
+                    
+                    // แสดงข้อความสำเร็จ
+                    const userName = allUsers[userIndex].name;
+                    showSuccess(`ยกเลิกการระงับบัญชีของ ${userName} สำเร็จแล้ว`);
+                }
+                
+                // ปิด Modal
+                closeAllModals();
+            })
+            .catch(error => {
+                // ปิด loading
+                document.getElementById('loadingSpinner').classList.add('hidden');
+                console.error('Error unsuspending user:', error);
+                showError(error.message || 'ไม่สามารถยกเลิกการระงับบัญชีได้');
+            });
+        }
+        
+        // แก้ไขฟังก์ชัน restrictUser เนื่องจากชื่อ API ไม่ถูกต้อง
+function restrictUser() {
+    const userId = document.getElementById('restrictUserId').value;
+    const restrictComment = document.getElementById('restrictComment').checked;
+    const restrictPost = document.getElementById('restrictPost').checked;
+    const duration = document.getElementById('restrictionDuration').value;
+    const reason = document.getElementById('restrictionReason').value;
+    const notify = document.getElementById('notifyRestrictUser').checked;
+    
+    if (!restrictComment && !restrictPost) {
+        showError('กรุณาเลือกประเภทการจำกัดการใช้งานอย่างน้อยหนึ่งรายการ');
+        return;
+    }
+    
+    if (!reason.trim()) {
+        showError('กรุณาระบุเหตุผลในการจำกัดการใช้งาน');
+        return;
+    }
+    
+    // กำหนดประเภทการจำกัด
+    const featureType = restrictComment && restrictPost ? 'both' : 
+                       restrictComment ? 'comment' : 'post';
+    
+    // เรียกใช้ API เพื่อจำกัดการใช้งาน (แก้ไขชื่อ API ให้ถูกต้อง)
+    fetch('api/restrict_user_features.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            userId, 
+            featureType, 
+            reason, 
+            duration, 
+            notify 
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('การเชื่อมต่อกับเซิร์ฟเวอร์ล้มเหลว');
+        }
+        return response.json();
+    })
+    .then(result => {
+        if (!result.success) {
+            throw new Error(result.message || 'ไม่สามารถจำกัดการใช้งานได้');
+        }
+        
+        // อัปเดตข้อมูลในตาราง
+        const userIndex = allUsers.findIndex(u => u.userID == userId);
+        if (userIndex !== -1) {
+            // สร้างข้อมูลการจำกัดการใช้งาน
+            const restriction = {
+                type: featureType,
+                reason: reason,
+                start_date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                end_date: result.data?.end_date || new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ')
+            };
+            
+            if (!allUsers[userIndex].restrictions) {
+                allUsers[userIndex].restrictions = [];
+            }
+            
+            allUsers[userIndex].restrictions.push(restriction);
+            
+            // อัปเดตการแสดงผล
+            filteredUsers = [...allUsers];
+            filterUsers();
+            
+            // แสดงข้อความสำเร็จ
+            const userName = allUsers[userIndex].name;
+            const restrictTypeText = restrictComment && restrictPost ? 'ทั้งการคอมเมนต์และการโพสต์' : 
+                                    restrictComment ? 'การคอมเมนต์' : 'การโพสต์';
+            showSuccess(`จำกัดการใช้งาน${restrictTypeText}ของ ${userName} สำเร็จแล้ว`);
+        }
+        
+        // ปิด Modal
+        closeAllModals();
+    })
+    .catch(error => {
+        console.error('Error restricting user:', error);
+        showError(error.message || 'ไม่สามารถจำกัดการใช้งานได้');
+    });
+}
+        
+        // ปิดทุก Modal
+        function closeAllModals() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.add('hidden');
+            });
+        }
+        
+        // แสดงข้อความแจ้งเตือนข้อผิดพลาด
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorAlert.classList.remove('hidden');
+            
+            // ซ่อนอัตโนมัติหลัง 5 วินาที
+            setTimeout(() => {
+                errorAlert.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // แสดงข้อความแจ้งเตือนสำเร็จ
+        function showSuccess(message) {
+            const successAlert = document.getElementById('successAlert');
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = message;
+            successAlert.classList.remove('hidden');
+            
+            // ซ่อนอัตโนมัติหลัง 5 วินาที
+            setTimeout(() => {
+                successAlert.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // แปลงเวลาให้อยู่ในรูปแบบที่อ่านง่าย
+        function formatTimeDiff(dateString) {
+            if (!dateString) return '-';
+            
+            const now = new Date();
+            const past = new Date(dateString);
+            const diffMs = now - past;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            
+            if (diffDay > 0) {
+                return `${diffDay} วันที่แล้ว`;
+            } else if (diffHour > 0) {
+                return `${diffHour} ชั่วโมงที่แล้ว`;
+            } else if (diffMin > 0) {
+                return `${diffMin} นาทีที่แล้ว`;
+            } else {
+                return 'เมื่อสักครู่';
+            }
+        }
+        
+        // แปลงวันที่เป็นรูปแบบไทย
+        function formatThaiDate(dateString) {
+            if (!dateString || dateString === 'permanent') return dateString;
+            
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return new Date(dateString).toLocaleDateString('th-TH', options);
+        }
+        
+        </script>
+        <script src="navbar.js"></script>
+        <script src="js/user-management.js"></script>
+    </body>
+</html>

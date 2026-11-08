@@ -1,0 +1,46 @@
+{
+"กระดาษลัง": {
+"include": ["กระดาษลัง","cardboard box","corrugated cardboard","shipping box","brown carton","used cardboard"],
+"exclude": ["illustration","vector","clipart","logo","mockup","template","3d","render","ai_generated","cat","dog","human","hand","toy"]
+},
+"ขวดแก้วใส": {
+"include": ["ขวดแก้วใส","clear glass bottle","glass bottle transparent","empty glass bottle"],
+"exclude": ["wine glass","drinking glass","illustration","vector","clipart","logo","3d","render","ai_generated","perfume"]
+},
+"ผ้า": {
+"include": ["ผ้า","fabric cloth","textile fabric","used cloth","rag"],
+"exclude": ["dress on model","fashion model","illustration","vector","clipart","logo","3d","render","ai_generated","pattern mockup"]
+},
+"รองเท้า": {
+"include": ["รองเท้า","shoes","sneakers","used shoes","old shoes","worn shoes"],
+"exclude": ["high heel on model","illustration","vector","clipart","logo","3d","render","ai_generated"]
+},
+"หลอดไฟ": {
+"include": ["หลอดไฟ","light bulb","fluorescent bulb","compact fluorescent","CFL bulb","tube light"],
+"exclude": ["idea light drawing","illustration","vector","clipart","logo","3d","render","ai_generated","lamp shade"]
+},
+"แก้วเก็บความเย็น": {
+"include": ["แก้วเก็บความเย็น","insulated cup","tumbler","thermal tumbler","vacuum cup"],
+"exclude": ["wine glass","mug illustration","vector","clipart","logo","3d","render","ai_generated"]
+},
+"แบตเตอรี่": {
+"include": ["แบตเตอรี่","battery","AA battery","AAA battery","lithium battery","button cell","used battery"],
+"exclude": ["car battery under hood","illustration","vector","clipart","logo","3d","render","ai_generated"]
+},
+"โลหะกระป๋อง": {
+"include": ["โลหะกระป๋อง","aluminum can","tin can","soda can","metal can","used can","crushed can"],
+"exclude": ["can mockup","illustration","vector","clipart","logo","3d","render","ai_generated"]
+},
+"กระดาษ": {
+"include": ["กระดาษ","paper sheet","paper stack","waste paper","scrap paper"],
+"exclude": ["document template","flyer mockup","illustration","vector","clipart","logo","3d","render","ai_generated"]
+},
+"ขวดพลาสติก": {
+"include": ["ขวดพลาสติก","plastic bottle","PET bottle","water bottle","used plastic bottle"],
+"exclude": ["illustration","vector","clipart","logo","3d","render","ai_generated","perfume bottle","detergent mockup"]
+},
+"ไม่ใช่ขยะ": {
+"include": ["household items","everyday objects","furniture","tools","appliances","kitchen items","living room"],
+"exclude": ["trash","waste","garbage","recycle","bin","dump","litter","rubbish","landfill","illustration","vector","clipart","logo","3d","render","ai_generated"]
+}
+}

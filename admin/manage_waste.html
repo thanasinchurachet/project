@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>จัดการข้อมูลขยะ - BinBuddy Admin</title>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+            rel="stylesheet">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <!-- Quill editor styles -->
+        <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        .table-row-hover:hover {
+            background-color: #f0fdf4;
+            transform: translateX(5px);
+        }
+        .swal2-popup {
+            font-family: 'Kanit', sans-serif;
+        }
+        /* Editor styles */
+        .editor-container { border:1.5px solid #d1d5db; border-radius:.75rem; }
+        .ql-container { font-family: 'Kanit', sans-serif; font-size: 16px; }
+        .ql-editor { min-height: 120px; max-height: 380px; overflow-y: auto; }
+        .method-section { border:1px solid #e5e7eb; border-radius:.5rem; background:#fafafa; }
+        .method-sec-header { display:flex; align-items:center; justify-content:space-between; padding:.6rem .8rem; cursor:pointer; }
+        .method-sec-header:hover { background:#f3f4f6; }
+        .method-title { display:flex; align-items:center; gap:.5rem; font-weight:500; font-size:.95rem; }
+        .method-content { padding:.75rem; border-top:1px solid #e5e7eb; }
+        .rotate-180 { transform: rotate(180deg); transition: transform .2s ease; }
+        .waste-type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .waste-type-general {
+            background-color: #E5E7EB;
+            color: #4B5563;
+        }
+        .waste-type-recycling {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+        .waste-type-hazardous {
+            background-color: #FEE2E2;
+            color: #B91C1C;
+        }
+        .search-icon-container {
+            position: absolute !important;
+            left: 1rem !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+        }
+        input[type="text"], 
+input[type="file"], 
+select {
+    border: 1.5px solid #d1d5db !important; /* สีเทาอ่อน border หนาขึ้น */
+    border-radius: 8px !important;
+}
+
+/* เมื่อ focus (คลิกหรือเลือก) */
+input[type="text"]:focus, 
+input[type="file"]:focus, 
+select:focus {
+    border-color: #10b981 !important; /* สีเขียว */
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important; /* เงาเขียวอ่อน */
+    outline: none !important;
+}
+
+/* เมื่อ hover */
+input[type="text"]:hover, 
+select:hover {
+    border-color: #9ca3af !important; /* สีเทาเข้มขึ้นเล็กน้อย */
+}
+
+/* สำหรับ search input ที่มี icon */
+.search-container {
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 8px !important;
+}
+
+.search-container:focus-within {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* แก้ไข search input ให้ไม่มี border ซ้ำซ้อน */
+#searchInput {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#searchInput:focus {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+    </style>
+    </head>
+    <body class="bg-gray-100">
+        <!-- Navigation container for navbar.html -->
+        <div id="navbar-container"></div>
+
+        <!-- Main Content -->
+        <div class="pt-16 md:ml-64">
+            <div class="p-6">
+                <!-- Header Section -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex flex-wrap justify-between items-center">
+                        <div>
+                            <h1
+                                class="text-2xl font-bold text-gray-800">จัดการข้อมูลขยะ</h1>
+                            <p class="text-gray-600"
+                                id="totalItems">กำลังโหลดข้อมูล...</p>
+                        </div>
+                        <div class="mt-4 md:mt-0 flex space-x-3">
+                            <div class="flex items-center rounded-lg border border-gray-300 focus-within:border-green-500 focus-within:ring focus-within:ring-green-200 focus-within:ring-opacity-50 pl-3">
+                                <i class="fas fa-search text-gray-400 mr-2"></i>
+                                <input type="text" id="searchInput" placeholder="ค้นหา..." class="w-full border-none focus:ring-0 py-2">
+                            </div>
+                            <div>
+                                <select id="typeFilter"
+                                    class="rounded-lg border-gray-300 focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50" style="    width: auto;
+    height: 42px;">
+                                    <option value="all">ทุกประเภท</option>
+                                    <option value="ขยะทั่วไป">ขยะทั่วไป</option>
+                                    <option
+                                        value="ขยะรีไซเคิล">ขยะรีไซเคิล</option>
+                                    <option
+                                        value="ขยะอันตราย">ขยะอันตราย</option>
+                                </select>
+                            </div>
+                            <button id="addNewBtn"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                                <i class="fas fa-plus mr-2"></i>เพิ่มขยะใหม่
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Section -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col"style="text-align: center;"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        รหัส
+                                    </th>
+                                    <th scope="col" style="text-align: center;"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ชื่อขยะ
+                                    </th>
+                                    <th scope="col" style="text-align: center;"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ประเภท
+                                    </th>
+                                    
+                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"style="text-align: center;">จำนวนเนื้อหา</th>
+
+  <th scope="col"class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="text-align: center;">
+                                        จำนวนโพสต์
+                                    </th>
+                                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="text-align: center;">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="wasteTableBody"
+                                class="bg-white divide-y divide-gray-200" style="    text-align: center;
+">
+                                <!-- Data will be loaded here by JavaScript -->
+                                <tr>
+                                    <td colspan="6"
+                                        class="px-6 py-4 text-center text-gray-500">
+                                        <div class="flex justify-center">
+                                            <div
+                                                class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+                                        </div>
+                                        <p class="mt-2">กำลังโหลดข้อมูล...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="bg-gray-50 px-6 py-3">
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-gray-700"
+                                id="paginationInfo">
+                                กำลังโหลดข้อมูล...
+                            </div>
+                            <div>
+                                <nav
+                                    class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                                    id="pagination">
+                                    <!-- Pagination will be generated by JavaScript -->
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Modal -->
+        <div id="wasteModal"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 overflow-y-auto">
+            <div
+                class="bg-white rounded-xl shadow-2xl w-11/12 max-w-4xl md:max-w-5xl transform transition-all flex flex-col overflow-hidden"
+                style="max-height:92vh;">
+                <div
+                    class="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                    <h3 id="modalTitle"
+                        class="text-xl font-bold text-gray-800">เพิ่มข้อมูลขยะใหม่</h3>
+                    <button id="closeModal"
+                        class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="wasteForm" class="flex flex-col min-h-0">
+                    <div class="p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
+                        <input type="hidden" id="trashId" value>
+
+                        <div>
+                            <label for="wasteName"
+                                class="block text-sm font-medium text-gray-700 mb-1">ชื่อขยะ</label>
+                            <input type="text" id="wasteName" name="name"
+                                class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50"
+                                required>
+                        </div>
+
+                        <div>
+                            <label for="wasteType"
+                                class="block text-sm font-medium text-gray-700 mb-1">ประเภทขยะ</label>
+                            <select id="wasteType" name="waste_type"
+                                class="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring focus:ring-green-200 focus:ring-opacity-50"
+                                required>
+                                <option value>เลือกประเภทขยะ</option>
+                                <option value="ขยะทั่วไป">ขยะทั่วไป</option>
+                                <option value="ขยะรีไซเคิล">ขยะรีไซเคิล</option>
+                                <option value="ขยะอันตราย">ขยะอันตราย</option>
+                            </select>
+                        </div>
+                                                    <label for="wasteImage"
+        class="block text-sm font-medium text-gray-700 mb-1">รูปภาพ</label>
+    
+    <!-- Image Preview Container - จัดให้อยู่ตรงกลาง -->
+    <div id="imagePreviewContainer" class="hidden mb-4">
+        <div class="flex justify-center items-center w-full">
+            <img id="imagePreview"
+                class="object-cover rounded-md shadow-sm"
+                style="max-width: 200px; max-height: 200px; width: auto; height: auto;"
+                src="" alt="รูปภาพขยะ">
+        </div>
+    </div>
+    
+    <!-- File Upload Button - จัดให้อยู่ตรงกลาง -->
+    <div class="flex justify-center mb-2">
+        <label class="cursor-pointer px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+            <input type="file" id="wasteImage"
+                name="image" accept="image/*"
+                class="hidden"
+                onChange="previewImage(this)">
+            <i class="fas fa-upload mr-2"></i>เลือกรูปภาพ
+        </label>
+    </div>
+    
+    <!-- Info Text - จัดให้อยู่ตรงกลาง -->
+    <p class="text-xs text-gray-500 text-center">
+        *ไฟล์ภาพขนาดไม่เกิน 2MB (jpg, jpeg, png)
+    </p>
+                        <div id="managementMethodsContainer"></div>
+                        <!-- ในส่วนของฟอร์ม เพิ่มฟิลด์อัปโหลดรูปภาพก่อน managementMethodsContainer -->
+                        <div>
+
+                        </div>
+
+                        <div id="actionInfo" class="mt-4 hidden">
+                            <div
+                                class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                <h4
+                                    class="text-sm font-medium text-blue-800 mb-1">ข้อมูลเพิ่มเติม</h4>
+                                <p class="text-xs text-blue-700"
+                                    id="postCountInfo"></p>
+                                <p
+                                    class="text-xs text-blue-700 mt-1">การเปลี่ยนแปลงประเภทขยะอาจส่งผลต่อโพสต์ที่เกี่ยวข้อง</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="p-6 border-t border-gray-200 flex justify-end space-x-3 sticky bottom-0 bg-white z-10">
+                        <button type="button" id="cancelBtn"
+                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                            ยกเลิก
+                        </button>
+                        <button type="submit" id="saveBtn"
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                            <i class="fas fa-save mr-2"></i><span
+                                id="saveBtnText">บันทึกข้อมูล</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+        // Constants
+        const API_URL = 'api/'; // Base API URL
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let totalPages = 1;
+        let wasteItems = [];
+        let filteredItems = [];
+        
+        // Helper function to format waste type
+        function formatWasteType(type) {
+            switch(type) {
+                case 'ขยะทั่วไป':
+                    return '<span class="waste-type-badge waste-type-general"><i class="fas fa-trash-alt mr-1"></i> ขยะทั่วไป</span>';
+                case 'ขยะรีไซเคิล':
+                    return '<span class="waste-type-badge waste-type-recycling"><i class="fas fa-recycle mr-1"></i> ขยะรีไซเคิล</span>';
+                case 'ขยะอันตราย':
+                    return '<span class="waste-type-badge waste-type-hazardous"><i class="fas fa-radiation mr-1"></i> ขยะอันตราย</span>';
+                default:
+                    return type;
+            }
+        }
+        
+        // Fetch waste items
+        async function fetchWasteItems() {
+            try {
+document.getElementById('wasteTableBody').innerHTML = `
+  <tr>
+    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+      <div class="flex justify-center">
+        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
+      </div>
+      <p class="mt-2">กำลังโหลดข้อมูล...</p>
+    </td>
+  </tr>
+`;
+                
+                // เรียกใช้ API จริง
+                const response = await fetch('api/trash.php');
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'ไม่สามารถโหลดข้อมูลได้');
+                }
+                wasteItems = data.data || [];
+                // Sort by id DESC (มากไปน้อย)
+                wasteItems.sort((a,b)=> (parseInt(b.trashId||0,10)) - (parseInt(a.trashId||0,10)));
+                filteredItems = [...wasteItems];
+                await fetchContentCounts();
+                updateWasteTable();
+                updatePagination();
+                document.getElementById('totalItems').textContent = `จำนวนทั้งหมด: ${wasteItems.length} รายการ`;
+
+
+                
+            } catch (error) {
+                console.error('Error fetching waste items:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                });
+                
+document.getElementById('wasteTableBody').innerHTML = `
+  <tr>
+    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+      <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+      <p>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
+      <button onclick="fetchWasteItems()" class="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+        ลองใหม่
+      </button>
+    </td>
+  </tr>
+`;
+            }
+        }
+        
+function updateWasteTable() {
+  const tableBody = document.getElementById('wasteTableBody');
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const itemsToShow = filteredItems.slice(startIndex, endIndex);
+
+  tableBody.innerHTML = '';
+
+  if (itemsToShow.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+          <i class="fas fa-search fa-2x mb-3"></i>
+          <p>ไม่พบข้อมูลที่ค้นหา</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  itemsToShow.forEach(item => {
+    const row = document.createElement('tr');
+    row.className = 'table-row-hover transition-all';
+
+    row.innerHTML = `
+      <td class="px-6 py-4 whitespace-nowrap">#${item.trashId}</td>
+      <td class="px-6 py-4 whitespace-nowrap">${item.name || '-'}</td>
+      <td class="px-6 py-4 whitespace-nowrap">${formatWasteType(item.Waste_type || '')}</td>
+      <td class="px-6 py-4 whitespace-nowrap">${item.content_count ?? 0}</td>
+      <td class="px-6 py-4 whitespace-nowrap">${item.post_count ?? 0}</td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="flex items-center gap-2" style="place-self: center;">
+          <!-- ปุ่มจัดการเนื้อหา -->
+          <!-- ปุ่มแก้ไข (เพิ่มคลาส edit-btn ให้ตรงกับโค้ดที่อ้างถึง) -->
+          <button class="edit-btn px-2 py-1 rounded-lg text-gray-700 hover:bg-gray-100"
+                  title="แก้ไข"
+                  data-id="${item.trashId}"
+                  onclick="editWasteItem(${item.trashId})">
+            <i class="fas fa-edit"></i>
+          </button>
+
+          <!-- ปุ่มลบ (เพิ่มคลาส delete-btn + data-post-count) -->
+          <button class="delete-btn px-2 py-1 rounded-lg text-red-600 hover:bg-red-50"
+                  title="ลบ"
+                  data-id="${item.trashId}"
+                  data-post-count="${item.post_count ?? 0}"
+                  onclick="deleteWasteItem(${item.trashId})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    `;
+
+    // ถ้ามีโพสต์ผูกอยู่ ให้ปิดการลบ (กันคลิกและปรับสไตล์)
+    if ((item.post_count ?? 0) > 0) {
+      const deleteBtn = row.querySelector('.delete-btn');
+      if (deleteBtn) {
+        deleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        deleteBtn.setAttribute('disabled', 'disabled');
+        deleteBtn.onclick = (e) => { e.preventDefault(); return false; };
+      }
+    }
+
+    tableBody.appendChild(row);
+  });
+
+  // ไม่ต้องมี setTimeout ผูกอีเวนต์ซ้ำ เพราะปุ่มใช้ onclick อยู่แล้ว
+}
+
+        
+        // Update pagination
+        function updatePagination() {
+            const totalItems = filteredItems.length;
+            totalPages = Math.ceil(totalItems / itemsPerPage);
+            
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationElement = document.getElementById('pagination');
+            
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+            
+            paginationInfo.textContent = `แสดง ${startItem} ถึง ${endItem} จาก ${totalItems} รายการ`;
+            
+            paginationElement.innerHTML = '';
+            
+            // Previous button
+            const prevButton = document.createElement('button');
+            prevButton.className = `relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`;
+            prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateWasteTable();
+                    updatePagination();
+                }
+            });
+            paginationElement.appendChild(prevButton);
+            
+            // Page buttons
+            const maxPageButtons = 3;
+            const startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+            const endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = `relative inline-flex items-center px-4 py-2 border ${currentPage === i ? 'bg-green-600 text-white border-green-600 z-10' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`;
+                pageButton.textContent = i;
+                pageButton.addEventListener('click', () => {
+                    currentPage = i;
+                    updateWasteTable();
+                    updatePagination();
+                });
+                paginationElement.appendChild(pageButton);
+            }
+            
+            // Next button
+            const nextButton = document.createElement('button');
+            nextButton.className = `relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`;
+            nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updateWasteTable();
+                    updatePagination();
+                }
+            });
+            paginationElement.appendChild(nextButton);
+        }
+        
+        // Filter waste items
+        function filterWasteItems() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            filteredItems = wasteItems.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchTerm);
+                const matchesType = typeFilter === 'all' || item.Waste_type === typeFilter;
+                return matchesSearch && matchesType;
+            });
+            
+            currentPage = 1;
+            updateWasteTable();
+            updatePagination();
+        }
+        // เพิ่มฟังก์ชันนี้ในส่วน <script>
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const container = document.getElementById('imagePreviewContainer');
+    
+    if (input.files && input.files[0]) {
+        // ตรวจสอบขนาดไฟล์ (ไม่เกิน 2MB)
+        if (input.files[0].size > 2 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'error',
+                title: 'ไฟล์มีขนาดใหญ่เกินไป',
+                text: 'กรุณาเลือกไฟล์ขนาดไม่เกิน 2MB',
+            });
+            input.value = '';
+            container.classList.add('hidden');
+            return;
+        }
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            container.classList.remove('hidden');
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        container.classList.add('hidden');
+    }
+}
+        // Open modal to add new waste item
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'เพิ่มข้อมูลขยะใหม่';
+            document.getElementById('saveBtnText').textContent = 'บันทึกข้อมูล';
+            document.getElementById('trashId').value = '';
+            document.getElementById('wasteName').value = '';
+            document.getElementById('wasteType').value = '';
+            
+            // Reset checkboxes
+           
+            
+            // Hide action info
+            document.getElementById('actionInfo').classList.add('hidden');
+            
+            // Show modal
+            document.getElementById('wasteModal').classList.remove('hidden');
+            document.getElementById('wasteModal').classList.add('flex');
+            
+            // Focus on name input
+            setTimeout(() => {
+                document.getElementById('wasteName').focus();
+            }, 100);
+        }
+        
+        // Open modal to edit waste item
+        async function editWasteItem(id) {
+            try {
+                // แสดง loading
+                Swal.fire({
+                    title: 'กำลังโหลดข้อมูล',
+                    text: 'กรุณารอสักครู่...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // เรียกใช้ API ดึงข้อมูลรายการนั้นๆ
+                const response = await fetch(`api/trash.php?id=${id}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'ไม่สามารถโหลดข้อมูลได้');
+                }
+                
+                const item = data.data;
+                
+                // ปิด loading
+                Swal.close();
+                
+                document.getElementById('modalTitle').textContent = 'แก้ไขข้อมูลขยะ';
+                document.getElementById('saveBtnText').textContent = 'บันทึกการแก้ไข';
+                document.getElementById('trashId').value = item.trashId;
+                document.getElementById('wasteName').value = item.name;
+                document.getElementById('wasteType').value = item.Waste_type;
+                
+                // แสดงรูปภาพที่มีอยู่
+                if (item.image) {
+                    const imagePreview = document.getElementById('imagePreview');
+                    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+                    
+                    imagePreview.src = `../img/trash_images/${item.image}`;
+                    imagePreviewContainer.classList.remove('hidden');
+                } else {
+                    document.getElementById('imagePreviewContainer').classList.add('hidden');
+                }
+                
+                // ตั้งค่า checkboxes ตามข้อมูลที่ได้รับ
+             
+                
+                // แสดงข้อมูลโพสต์ที่เกี่ยวข้อง
+                if (item.post_count > 0) {
+                    document.getElementById('postCountInfo').textContent = `มีโพสต์ที่เกี่ยวข้อง ${item.post_count} โพสต์`;
+                    document.getElementById('actionInfo').classList.remove('hidden');
+                } else {
+                    document.getElementById('actionInfo').classList.add('hidden');
+                }
+                
+                // แสดง modal
+                document.getElementById('wasteModal').classList.remove('hidden');
+                document.getElementById('wasteModal').classList.add('flex');
+                
+                // Focus on name input
+                setTimeout(() => {
+                    document.getElementById('wasteName').focus();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error loading waste item details:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: error.message || 'ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                });
+            }
+        }
+        
+        // View waste details
+        async function viewWasteDetails(id) {
+            try {
+                // แสดง loading
+                Swal.fire({
+                    title: 'กำลังโหลดข้อมูล',
+                    text: 'กรุณารอสักครู่...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // เรียกใช้ API ดึงข้อมูลรายการนั้นๆ
+                const response = await fetch(`api/trash.php?id=${id}`);
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'ไม่สามารถโหลดข้อมูลได้');
+                }
+                
+                const item = result.data;
+                
+                // ปิด loading
+                Swal.close();
+                
+                // เพิ่มส่วนแสดงรูปภาพ
+                const imageUrl = item.image ? `../img/trash_images/${item.image}` : '../img/trash_images/default.jpg';
+                
+                // สร้าง HTML สำหรับแสดงวิธีการจัดการขยะ
+                
+                
+            } catch (error) {
+                console.error('Error loading waste item details:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: error.message || 'ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                });
+            }
+        }
+        
+        // Delete waste item
+        async function deleteWasteItem(id) {
+            const item = wasteItems.find(item => item.trashId == id);
+            if (!item) return;
+            
+            Swal.fire({
+                title: 'ยืนยันการลบ',
+                text: `คุณต้องการลบ "${item.name}" ใช่หรือไม่?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'ใช่, ลบเลย',
+                cancelButtonText: 'ยกเลิก'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        // แสดง loading
+                        Swal.fire({
+                            title: 'กำลังดำเนินการ',
+                            text: 'กรุณารอสักครู่...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // เรียกใช้ API ลบข้อมูล
+                        const response = await fetch(`api/trash.php?id=${id}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!data.success) {
+                            throw new Error(data.message || 'ไม่สามารถลบข้อมูลได้');
+                        }
+                        
+                        // อัปเดตข้อมูลในตาราง
+                        wasteItems = wasteItems.filter(item => item.trashId != id);
+                        filteredItems = filteredItems.filter(item => item.trashId != id);
+                        currentPage = 1;
+                        updateWasteTable();
+                        updatePagination();
+                        document.getElementById('totalItems').textContent = `จำนวนทั้งหมด: ${wasteItems.length} รายการ`;
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'ลบข้อมูลสำเร็จ',
+                            text: `ลบ "${item.name}" เรียบร้อยแล้ว`,
+                            confirmButtonColor: '#10b981'
+                        });
+                    } catch (error) {
+                        console.error('Error deleting waste item:', error);
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'เกิดข้อผิดพลาด',
+                            text: error.message || 'ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                        });
+                    }
+                }
+            });
+        }
+        function resetImagePreview() {
+  const input = document.getElementById('wasteImage');
+  const preview = document.getElementById('imagePreview');
+  const container = document.getElementById('imagePreviewContainer');
+  if (input) input.value = '';         // ล้างไฟล์ที่เลือก
+  if (preview) preview.src = '';       // เอา src ออก
+  if (container) container.classList.add('hidden'); // ซ่อนกล่องพรีวิว
+}
+
+function resetWasteForm() {
+  const form = document.getElementById('wasteForm');
+  if (form) form.reset();
+  document.getElementById('trashId').value = '';
+  document.getElementById('wasteType').value = '';      // ให้กลับไปเป็น “เลือกประเภทขยะ”
+  resetImagePreview();
+  document.getElementById('actionInfo').classList.add('hidden');
+}
+function hideWasteModal() {
+  const modal = document.getElementById('wasteModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  resetWasteForm(); // <— ปิดแล้วล้างค่างานเก่าให้หมด
+}
+
+        // Submit form to add/edit waste item
+        async function submitForm(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('trashId').value;
+            const name = document.getElementById('wasteName').value.trim();
+            const type = document.getElementById('wasteType').value;
+            const imageInput = document.getElementById('wasteImage');
+            
+            // Validate
+            if (!name) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ข้อมูลไม่ครบถ้วน',
+                    text: 'กรุณาระบุชื่อขยะ',
+                });
+                return;
+            }
+            
+            if (!type) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ข้อมูลไม่ครบถ้วน',
+                    text: 'กรุณาเลือกประเภทขยะ',
+                });
+                return;
+            }
+
+            // Client-side duplicate guard for waste name
+            const lower = name.toLowerCase();
+            if (!id) {
+                // adding new
+                const dup = wasteItems.some(w => (w.name || '').toLowerCase() === lower);
+                if (dup) {
+                    Swal.fire({ icon: 'error', title: 'ชื่อขยะซ้ำ', text: 'มีชื่อขยะนี้อยู่แล้วในระบบ' });
+                    return;
+                }
+            } else {
+                const dup = wasteItems.some(w => String(w.trashId) !== String(id) && (w.name || '').toLowerCase() === lower);
+                if (dup) {
+                    Swal.fire({ icon: 'error', title: 'ชื่อขยะซ้ำ', text: 'ชื่อขยะนี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น' });
+                    return;
+                }
+            }
+            
+            
+            
+            // Show loading
+            document.getElementById('saveBtn').disabled = true;
+            document.getElementById('saveBtnText').textContent = 'กำลังบันทึก...';
+            
+            try {
+                // ใช้ FormData แทน JSON เพื่อส่งไฟล์
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('Waste_type', type);
+                
+                // เพิ่มไฟล์รูปภาพ (ถ้ามี)
+                if (imageInput.files && imageInput.files[0]) {
+                    formData.append('image', imageInput.files[0]);
+                }
+                
+                let response;
+                
+                if (id) {
+                    // กรณีแก้ไข เพิ่ม ID เข้าไปใน FormData
+                    formData.append('trashId', id);
+                    
+                    // แก้ไขข้อมูล
+                    response = await fetch(`api/trash.php?id=${id}&_method=PUT`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else {
+                    // เพิ่มข้อมูลใหม่
+                    response = await fetch('api/trash.php', {
+                        method: 'POST',
+                        body: formData // ไม่ต้องใส่ headers เพราะ FormData จะตั้งค่าเอง
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'ไม่สามารถบันทึกข้อมูลได้');
+                }
+                
+                // อัปเดต UI
+                await fetchWasteItems(); // โหลดข้อมูลใหม่ทั้งหมด
+                
+                // ล้างการค้นหาและกรอง
+                document.getElementById('searchInput').value = '';
+                document.getElementById('typeFilter').value = 'all';
+                filteredItems = [...wasteItems];
+                updateWasteTable();
+                updatePagination();
+                
+                // ปิด modal
+                document.getElementById('wasteModal').classList.add('hidden');
+                document.getElementById('wasteModal').classList.remove('flex');
+
+                // หากเป็นการเพิ่มรายการใหม่ ให้แสดงแจ้งเตือนเสนอการเพิ่มเนื้อหา
+                if (!id) {
+                    const createdId = (data && data.data && data.data.trashId) ? data.data.trashId : null;
+
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'เพิ่มเนื้อหาหรือบทความเกี่ยวกับขยะ',
+                        html: `
+                            <div class="text-gray-700">คุณต้องการเพิ่มเนื้อหาสำหรับรายการขยะนี้ตอนนี้หรือไม่?</div>
+                            <div class="mt-4">
+                                <button id="addContentNowBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">เพิ่มเนื้อหา</button>
+                            </div>
+                            <div class="mt-3 text-sm">
+                                <a href="#" id="addContentLaterLink" class="text-gray-500 hover:text-gray-700 underline">เพิ่มภายหลัง</a>
+                            </div>
+                        `,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            const addBtn = document.getElementById('addContentNowBtn');
+                            const laterLink = document.getElementById('addContentLaterLink');
+                            if (addBtn) {
+                                addBtn.addEventListener('click', () => {
+                                    if (createdId) {
+                                        openContentManager(createdId, name);
+                                    }
+                                    Swal.close();
+                                });
+                            }
+                            if (laterLink) {
+                                laterLink.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    Swal.close();
+                                });
+                            }
+                        }
+                    });
+                } else {
+                    // กรณีแก้ไข แสดงแจ้งเตือนสำเร็จตามปกติ
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'แก้ไขข้อมูลสำเร็จ',
+                        text: `แก้ไข "${name}" เรียบร้อยแล้ว`,
+                        confirmButtonColor: '#10b981'
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error saving waste item:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: error.message || 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                });
+            } finally {
+                document.getElementById('saveBtn').disabled = false;
+                document.getElementById('saveBtnText').textContent = 'บันทึกข้อมูล';
+            }
+        }
+
+
+        // Initialize page
+        async function initPage() {
+            try {
+                // Load navbar
+                try {
+                    const response = await fetch('navbar.html');
+                    const html = await response.text();
+                    document.getElementById('navbar-container').innerHTML = html;
+                    
+                    // Execute scripts from navbar
+                    const scripts = document.getElementById('navbar-container').getElementsByTagName('script');
+                    for (let script of scripts) {
+                        eval(script.innerHTML);
+                    }
+                } catch (error) {
+                    console.error('Error loading navbar:', error);
+                }
+                
+                // Fetch waste items
+                fetchWasteItems();
+                
+                // Set up event listeners
+                document.getElementById('searchInput').addEventListener('input', filterWasteItems);
+                document.getElementById('typeFilter').addEventListener('change', filterWasteItems);
+                document.getElementById('addNewBtn').addEventListener('click', openAddModal);
+                document.getElementById('closeModal').addEventListener('click', () => {
+                    document.getElementById('wasteModal').classList.add('hidden');
+                    document.getElementById('wasteModal').classList.remove('flex');
+                });
+                document.getElementById('cancelBtn').addEventListener('click', () => {
+                    document.getElementById('wasteModal').classList.add('hidden');
+                    document.getElementById('wasteModal').classList.remove('flex');
+                });
+                document.getElementById('wasteForm').addEventListener('submit', submitForm);
+                
+                // Close modal when clicking outside
+                document.getElementById('wasteModal').addEventListener('click', (e) => {
+                    if (e.target === document.getElementById('wasteModal')) {
+                        document.getElementById('wasteModal').classList.add('hidden');
+                        document.getElementById('wasteModal').classList.remove('flex');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+  await loadNavbar();      // อัปเดตตัวเลขแจ้งเตือน + ไฮไลต์เมนู
+  await initPage();        // ภายใน initPage() อย่าโหลด navbar ซ้ำ
+});
+document.getElementById('closeModal').addEventListener('click', hideWasteModal);
+document.getElementById('cancelBtn').addEventListener('click', hideWasteModal);
+document.getElementById('wasteModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('wasteModal')) hideWasteModal();
+});
+    </script>
+    <script>
+async function fetchContentCounts() {
+    try {
+        const resp = await fetch('get_content_counts.php');
+        
+        // ตรวจสอบว่า response เป็น JSON ที่ถูกต้อง
+        const contentType = resp.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Response is not JSON');
+        }
+        
+        const text = await resp.text();
+        if (!text.trim()) {
+            throw new Error('Empty response');
+        }
+        
+        const json = JSON.parse(text);
+        if (!json.success) throw new Error(json.message || 'โหลดจำนวนเนื้อหาไม่สำเร็จ');
+        
+        const counts = json.data?.counts || {};
+        wasteItems = wasteItems.map(it => ({ 
+            ...it, 
+            content_count: parseInt(counts[it.trashId] || 0, 10) 
+        }));
+        filteredItems = filteredItems.map(it => ({ 
+            ...it, 
+            content_count: parseInt(counts[it.trashId] || 0, 10) 
+        })); 
+        updateWasteTable();
+    } catch (e) {
+        console.warn('Content counts unavailable:', e);
+        // ตั้งค่าดีฟอลต์หากไม่สามารถโหลดได้
+        wasteItems = wasteItems.map(it => ({ 
+            ...it, 
+            content_count: it.content_count || 0 
+        }));
+        filteredItems = filteredItems.map(it => ({ 
+            ...it, 
+            content_count: it.content_count || 0 
+        }));
+        updateWasteTable();
+    }
+}
+    </script>
+    <!-- Quill editor script -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <!-- Combined form: content editors + overrides -->
+    <script>
+    // Management types
+    const MANAGEMENT_TYPES = [
+      { key: 'reuse',   label: 'Reuse (นำกลับมาใช้ใหม่)',  color: 'green' },
+      { key: 'recycle', label: 'Recycle (รีไซเคิล)',       color: 'blue' },
+      { key: 'dispose', label: 'Dispose (กำจัด)',          color: 'yellow' }
+    ];
+    let contentEditors = {};   // key -> Quill instance
+    let contentState = {};     // key -> { contentId }
+
+    function isQuillEmpty(q){
+      if (!q) return true;
+      const html = q.root.innerHTML.trim();
+      return html === '' || html === '<p><br></p>';
+    }
+
+    function getSelectedMethods(){
+      const root = document.getElementById('managementMethodsContainer');
+      if (!root) return [];
+      return Array.from(root.querySelectorAll('.method-check'))
+        .filter(ch => ch.checked)
+        .map(ch => ch.dataset.key);
+    }
+
+    function renderManagementSection(selected = [], trashId = null, focusContent = false){
+      const c = document.getElementById('managementMethodsContainer');
+      if (!c) return;
+      let html = '';
+      html += '<div class="space-y-3">';
+      html += '<div class="flex items-center justify-between">'
+           +  '<label class="block text-sm font-medium text-gray-700">วิธีจัดการ</label>'
+           +  '</div>';
+      // Build accordion sections
+      MANAGEMENT_TYPES.forEach(t => {
+        const checked = selected.includes(t.key) ? 'checked' : '';
+        html += `
+          <div id="section-${t.key}" class="method-section">
+            <div class="method-sec-header" data-key="${t.key}">
+              <div class="method-title">
+                <input type="checkbox" class="method-check" data-key="${t.key}" ${checked} onclick="event.stopPropagation()">
+                <span class="px-2 py-0.5 rounded-full text-xs bg-${t.color}-100 text-${t.color}-800">${t.label}</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <button type="button" class="method-preview-btn text-gray-500 hover:text-gray-700" data-key="${t.key}" title="ดูตัวอย่าง"><i class="fas fa-eye"></i></button>
+                <i class="fas fa-chevron-down text-gray-500" id="chev-${t.key}"></i>
+              </div>
+            </div>
+            <div class="method-content hidden" id="contentwrap-${t.key}">
+              <input type="hidden" id="contentId-${t.key}" value="">
+              <div class="editor-container mb-3"><div id="editor-${t.key}"></div></div>
+              <div class="flex items-center gap-3">
+                <input type="file" id="imageUpload-${t.key}" accept="image/*" class="text-sm">
+                <span class="text-xs text-gray-500">อัปโหลดรูปภาพ (ไม่บังคับ)</span>
+              </div>
+            </div>
+          </div>`;
+      });
+      html += '</div>';
+      c.innerHTML = html;
+
+      // Toggle visibility by checkbox and accordion behavior
+      c.querySelectorAll('.method-check').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const key = chk.dataset.key;
+          const content = document.getElementById(`contentwrap-${key}`);
+          const chev = document.getElementById(`chev-${key}`);
+          if (!content) return;
+          if (chk.checked) {
+            content.classList.remove('hidden');
+            if (chev) chev.classList.add('rotate-180');
+          } else {
+            content.classList.add('hidden');
+            if (chev) chev.classList.remove('rotate-180');
+          }
+        });
+      });
+
+      // Accordion header click
+      c.querySelectorAll('.method-sec-header').forEach(h => {
+        h.addEventListener('click', () => {
+          const key = h.dataset.key;
+          const chk = c.querySelector(`.method-check[data-key="${key}"]`);
+          const content = document.getElementById(`contentwrap-${key}`);
+          const chev = document.getElementById(`chev-${key}`);
+          if (!chk || !content) return;
+          if (!chk.checked) {
+            chk.checked = true;
+            content.classList.remove('hidden');
+            if (chev) chev.classList.add('rotate-180');
+          } else {
+            const hidden = content.classList.contains('hidden');
+            if (hidden) { content.classList.remove('hidden'); if (chev) chev.classList.add('rotate-180'); }
+            else { content.classList.add('hidden'); if (chev) chev.classList.remove('rotate-180'); }
+          }
+        });
+      });
+
+      // Preview buttons per method
+      c.querySelectorAll('.method-preview-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const key = btn.dataset.key;
+          previewMethod(key);
+        });
+      });
+
+      // Init editors
+      contentEditors = {};
+      contentState = {};
+      MANAGEMENT_TYPES.forEach(t => {
+        contentEditors[t.key] = new Quill(`#editor-${t.key}`, {
+          modules: {
+            toolbar: [[{ header: [1,2,false]}], ['bold','italic','underline','strike'], [{list:'ordered'},{list:'bullet'}], [{align:[]}], ['link','image'], ['clean']]
+          },
+          placeholder: 'เขียนเนื้อหาที่นี่...',
+          theme: 'snow'
+        });
+        contentState[t.key] = { contentId: null };
+        // Auto sync tick with content availability
+        try {
+          contentEditors[t.key].on('text-change', () => {
+            updateMethodCheckState(t.key);
+          });
+        } catch(e) {}
+      });
+
+      if (trashId) loadExistingContents(trashId).then(() => {
+        // expand first selected if exists
+        const firstSel = selected[0];
+        if (firstSel) setActiveMethod(firstSel); else {
+          const anyChecked = Array.from(c.querySelectorAll('.method-check')).find(el => el.checked);
+          if (anyChecked) setActiveMethod(anyChecked.dataset.key);
+        }
+        // After load, ensure ticks reflect actual content
+        MANAGEMENT_TYPES.forEach(t => updateMethodCheckState(t.key));
+      });
+      if (focusContent) setTimeout(() => c.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+    }
+
+    function setActiveMethod(key){
+      const c = document.getElementById('managementMethodsContainer');
+      if (!c) return;
+      // hide all
+      c.querySelectorAll('.method-content').forEach(el => el.classList.add('hidden'));
+      c.querySelectorAll('[id^="chev-"]').forEach(el => el.classList.remove('rotate-180'));
+      // show selected
+      const wrap = document.getElementById(`contentwrap-${key}`);
+      const chev = document.getElementById(`chev-${key}`);
+      const chk = c.querySelector(`.method-check[data-key="${key}"]`);
+      if (chk && !chk.checked) { chk.checked = true; }
+      if (wrap) wrap.classList.remove('hidden');
+      if (chev) chev.classList.add('rotate-180');
+    }
+
+    function updateMethodCheckState(key){
+      const q = contentEditors[key];
+      const chk = document.querySelector(`.method-check[data-key="${key}"]`);
+      const content = document.getElementById(`contentwrap-${key}`);
+      const chev = document.getElementById(`chev-${key}`);
+      if (!chk || !content || !q) return;
+      const empty = isQuillEmpty(q);
+      if (empty) {
+        chk.checked = false;
+        content.classList.add('hidden');
+        if (chev) chev.classList.remove('rotate-180');
+      } else {
+        chk.checked = true;
+      }
+    }
+
+    async function loadExistingContents(trashId){
+      try{
+        const res = await fetch(`get_trash_content.php?trashId=${encodeURIComponent(trashId)}&limit=100`);
+        const data = await res.json();
+        if (!data.success) return;
+        const list = (data.data && data.data.contents) ? data.data.contents : [];
+        const byType = {};
+        list.forEach(it => { if (it.Management_type) byType[it.Management_type.toLowerCase()] = it; });
+        MANAGEMENT_TYPES.forEach(t => {
+          const d = byType[t.key];
+          if (d && contentEditors[t.key]){
+            const html = (d.content || '').replace(/admin\/img\/trash_content\//g, 'img/trash_content/');
+            contentEditors[t.key].setContents([]);
+            contentEditors[t.key].clipboard.dangerouslyPasteHTML(html);
+            const idEl = document.getElementById(`contentId-${t.key}`);
+            if (idEl) idEl.value = String(d.contentId || '');
+            // ensure checked
+            const chk = document.querySelector(`.method-check[data-key="${t.key}"]`);
+            const sec = document.getElementById(`section-${t.key}`);
+            if (chk && sec) { chk.checked = true; sec.classList.remove('hidden'); }
+          }
+        });
+      }catch(e){ console.warn('loadExistingContents error', e); }
+    }
+
+    async function saveSelectedContents(trashId){
+      const methods = getSelectedMethods();
+      const errors = [];
+      for (const key of methods){
+        const q = contentEditors[key];
+        if (!q || isQuillEmpty(q)) continue;
+        const idEl = document.getElementById(`contentId-${key}`);
+        const fileEl = document.getElementById(`imageUpload-${key}`);
+        let html = q.root.innerHTML.trim().replace(/admin\/img\/trash_content\//g, 'img/trash_content/');
+        const fd = new FormData();
+        fd.append('trashId', String(trashId));
+        fd.append('managementType', key);
+        fd.append('content', html);
+        if (idEl && idEl.value) fd.append('contentId', idEl.value);
+        if (fileEl && fileEl.files && fileEl.files.length>0) fd.append('image', fileEl.files[0]);
+        try{
+          const resp = await fetch('save_trash_content.php', { method:'POST', body: fd });
+          const text = await resp.text();
+          let json; try{ json = JSON.parse(text);}catch(e){ throw new Error('รูปแบบคำตอบไม่ถูกต้อง'); }
+          if (!json.success) throw new Error(json.message || 'บันทึกเนื้อหาไม่สำเร็จ');
+        }catch(err){ errors.push(`${key}: ${err.message}`); }
+      }
+      return errors;
+    }
+
+    async function removeUncheckedContents(trashId, selected){
+      try{
+        const res = await fetch(`get_trash_content.php?trashId=${encodeURIComponent(trashId)}&limit=100`);
+        const data = await res.json();
+        if (!data.success) return;
+        const list = (data.data && data.data.contents) ? data.data.contents : [];
+        const selectedSet = new Set(selected.map(s => String(s).toLowerCase()));
+        for (const item of list){
+          const m = String(item.Management_type || '').toLowerCase();
+          if (!selectedSet.has(m)){
+            // delete this content
+            const fd = new FormData();
+            fd.append('contentId', String(item.contentId));
+            try {
+              const resp = await fetch('delete_trash_content.php', { method:'POST', body: fd });
+              await resp.json();
+            } catch(e) { console.warn('delete content failed', item.contentId, e); }
+          }
+        }
+      }catch(e){ console.warn('removeUncheckedContents error', e); }
+    }
+
+    // Wrap existing openAddModal to render management section
+    (function(){
+      const originalOpenAdd = window.openAddModal;
+      if (typeof originalOpenAdd === 'function') {
+        window.openAddModal = function(){
+          originalOpenAdd();
+          try { if (typeof resetImagePreview === 'function') resetImagePreview(); } catch(e) {}
+          try { renderManagementSection([], null, false); } catch(e) { console.warn(e); }
+        };
+      }
+    })();
+
+    // Override editWasteItem to use combined form
+    window.editWasteItem = async function(id, focusContent=false){
+      try {
+        Swal.fire({ title:'กำลังโหลดข้อมูล', text:'กรุณารอสักครู่...', allowOutsideClick:false, didOpen:() => Swal.showLoading() });
+        const response = await fetch(`api/trash.php?id=${id}`);
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message || 'ไม่สามารถโหลดข้อมูลได้');
+        const item = data.data;
+        Swal.close();
+        // fill fields
+        document.getElementById('modalTitle').textContent = 'แก้ไขข้อมูลขยะ';
+        document.getElementById('trashId').value = item.trashId || '';
+        document.getElementById('wasteName').value = item.name || '';
+        document.getElementById('wasteType').value = item.Waste_type || '';
+        const methods = Array.isArray(item.management_methods) ? item.management_methods.map(x=>String(x).toLowerCase()) : [];
+        renderManagementSection(methods, item.trashId, focusContent);
+        // show existing image preview (if any)
+        try {
+          const prev = document.getElementById('imagePreview');
+          const box = document.getElementById('imagePreviewContainer');
+          if (item.image) {
+            const url = `../img/trash_images/${item.image}`;
+            if (prev) prev.src = url;
+            if (box) box.classList.remove('hidden');
+          } else {
+            if (box) box.classList.add('hidden');
+          }
+        } catch(e) {}
+        if ((item.post_count ?? 0) > 0) {
+          document.getElementById('postCountInfo').textContent = `มีโพสต์ที่เกี่ยวข้อง ${item.post_count} โพสต์`;
+          document.getElementById('actionInfo').classList.remove('hidden');
+        } else { document.getElementById('actionInfo').classList.add('hidden'); }
+        document.getElementById('wasteModal').classList.remove('hidden');
+        document.getElementById('wasteModal').classList.add('flex');
+        setTimeout(()=>document.getElementById('wasteName').focus(), 100);
+      } catch (error) {
+        console.error('Error loading waste item details:', error);
+        Swal.fire({ icon:'error', title:'เกิดข้อผิดพลาด', text: error.message || 'ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง' });
+      }
+    }
+
+    // Intercept form submit to use combined save
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('wasteForm');
+      if (!form) return;
+      form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const id = document.getElementById('trashId').value;
+        const name = document.getElementById('wasteName').value.trim();
+        const type = document.getElementById('wasteType').value;
+        const imageInput = document.getElementById('wasteImage');
+        if (!name){ Swal.fire({icon:'error', title:'ข้อมูลไม่ครบถ้วน', text:'กรุณาระบุชื่อขยะ'}); return; }
+        if (!type){ Swal.fire({icon:'error', title:'ข้อมูลไม่ครบถ้วน', text:'กรุณาเลือกประเภทขยะ'}); return; }
+        // duplicate guard
+        const lower = name.toLowerCase();
+        if (!id) {
+          const dup = (window.wasteItems||[]).some(w => (w.name||'').toLowerCase() === lower);
+          if (dup) { Swal.fire({icon:'error', title:'ชื่อขยะซ้ำ', text:'มีชื่อขยะนี้อยู่แล้วในระบบ'}); return; }
+        } else {
+          const dup = (window.wasteItems||[]).some(w => String(w.trashId)!==String(id) && (w.name||'').toLowerCase()===lower);
+          if (dup) { Swal.fire({icon:'error', title:'ชื่อขยะซ้ำ', text:'ชื่อขยะนี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น'}); return; }
+        }
+        const selectedMethods = getSelectedMethods();
+        // show loading
+        const saveBtn = document.getElementById('saveBtn');
+        const saveText = document.getElementById('saveBtnText');
+        if (saveBtn) saveBtn.disabled = true;
+        if (saveText) saveText.textContent = 'กำลังบันทึก...';
+        try{
+          const formData = new FormData();
+          formData.append('name', name);
+          formData.append('Waste_type', type);
+          formData.append('management_methods', JSON.stringify(selectedMethods));
+          if (imageInput && imageInput.files && imageInput.files[0]) formData.append('image', imageInput.files[0]);
+          let resp;
+          if (id){
+            formData.append('trashId', id);
+            resp = await fetch(`api/trash.php?id=${id}&_method=PUT`, { method:'POST', body: formData });
+          } else {
+            resp = await fetch('api/trash.php', { method:'POST', body: formData });
+          }
+          const json = await resp.json();
+          if (!json.success) throw new Error(json.message || 'ไม่สามารถบันทึกข้อมูลได้');
+          const createdId = id ? id : (json.data && json.data.trashId ? json.data.trashId : null);
+          let contentErrors = [];
+          if (createdId) {
+            contentErrors = await saveSelectedContents(createdId);
+            await removeUncheckedContents(createdId, selectedMethods);
+          }
+          await fetchWasteItems();
+          document.getElementById('wasteModal').classList.add('hidden');
+          document.getElementById('wasteModal').classList.remove('flex');
+          const isCreate = !id;
+          const title = isCreate ? 'เพิ่มข้อมูลสำเร็จ' : 'แก้ไขข้อมูลสำเร็จ';
+          let html = `<p>${isCreate?`เพิ่ม "${name}" เรียบร้อยแล้ว`:`แก้ไข "${name}" เรียบร้อยแล้ว`}</p>`;
+          if (contentErrors.length){
+            html += `<div class="mt-2 text-left"><div class="text-red-600 font-medium">แต่มีบางเนื้อหาบันทึกไม่สำเร็จ:</div><ul class="list-disc pl-5 text-sm text-red-600">${contentErrors.map(e=>`<li>${e}</li>`).join('')}</ul></div>`;
+          }
+          Swal.fire({ icon:'success', title, html, confirmButtonColor:'#10b981' });
+        }catch(err){
+          console.error('combined submit error', err);
+          Swal.fire({ icon:'error', title:'เกิดข้อผิดพลาด', text: err.message || 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง' });
+        } finally {
+          if (saveBtn) saveBtn.disabled = false;
+          if (saveText) saveText.textContent = 'บันทึกข้อมูล';
+        }
+      }, true); // capture to intercept default handler
+
+      // Ensure the Add New button uses the wrapped openAddModal
+      const addBtn = document.getElementById('addNewBtn');
+      if (addBtn) {
+        addBtn.addEventListener('click', (e) => {
+          // intercept and call the latest openAddModal
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          if (typeof window.openAddModal === 'function') window.openAddModal();
+        }, true);
+      }
+      // Preview button
+      const prevBtn = document.getElementById('previewContentBtn');
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          previewCurrentContent();
+        });
+      }
+    });
+
+    // Redirect content manager button to combined form
+    window.openContentManager = function(trashId, name){
+      window.editWasteItem(trashId, true);
+    }
+
+    function previewCurrentContent(){
+      const name = (document.getElementById('wasteName')?.value || '').trim();
+      const type = document.getElementById('wasteType')?.value || '';
+      const methods = getSelectedMethods();
+      // find active opened content first
+      const openEl = document.querySelector('#managementMethodsContainer .method-content:not(.hidden)');
+      let key = null;
+      if (openEl) {
+        key = openEl.id.replace('contentwrap-','');
+      } else if (methods.length) {
+        key = methods[0];
+      }
+      if (!key) { Swal.fire({icon:'info', title:'ไม่มีเนื้อหา', text:'โปรดเลือกวิธีจัดการและกรอกเนื้อหา'}); return; }
+      const q = contentEditors[key];
+      if (!q || isQuillEmpty(q)) { Swal.fire({icon:'info', title:'ไม่มีเนื้อหา', text:'ยังไม่ได้กรอกเนื้อหาสำหรับวิธีนี้'}); return; }
+      const map = { reuse:'Reuse (นำกลับมาใช้ใหม่)', recycle:'Recycle (รีไซเคิล)', dispose:'Dispose (กำจัด)' };
+      const html = q.root.innerHTML.replace(/admin\/img\/trash_content\//g, 'img/trash_content/');
+      const header = `
+        <div class="mb-3">
+          <div class="text-xl font-bold">${name || 'ไม่ระบุชื่อ'}</div>
+          <div class="text-sm text-gray-600">${type || ''}</div>
+          <div class="text-sm text-gray-500">${map[key] || key}</div>
+        </div>
+      `;
+      Swal.fire({
+        width: '60rem',
+        title: 'ตัวอย่างเนื้อหา',
+        html: `<div class="text-left">${header}<div class="prose">${html}</div></div>`,
+        confirmButtonText: 'ปิด'
+      });
+    }
+
+    function previewMethod(key){
+      const name = (document.getElementById('wasteName')?.value || '').trim();
+      const type = document.getElementById('wasteType')?.value || '';
+      const q = contentEditors[key];
+      if (!q || isQuillEmpty(q)) { Swal.fire({icon:'info', title:'ไม่มีเนื้อหา', text:'ยังไม่ได้กรอกเนื้อหาสำหรับวิธีนี้'}); return; }
+      const map = { reuse:'Reuse (นำกลับมาใช้ใหม่)', recycle:'Recycle (รีไซเคิล)', dispose:'Dispose (กำจัด)' };
+      const html = q.root.innerHTML.replace(/admin\/img\/trash_content\//g, 'img/trash_content/');
+      const header = `
+        <div class="mb-3">
+          <div class="text-xl font-bold">${name || 'ไม่ระบุชื่อ'}</div>
+          <div class="text-sm text-gray-600">${type || ''}</div>
+          <div class="text-sm text-gray-500">${map[key] || key}</div>
+        </div>
+      `;
+      Swal.fire({ width:'60rem', title:'ตัวอย่างเนื้อหา', html:`<div class="text-left">${header}<div class="prose">${html}</div></div>`, confirmButtonText:'ปิด' });
+    }
+    </script>
+
+        <style>
+        .nav-item {
+            transition: all 0.3s ease;
+        }
+        .nav-item:hover {
+            transform: translateX(8px);
+        }
+        .active-nav-item {
+            border-left: 4px solid #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .frame-size {
+            width: 90%;
+            height: 90%;
+        }
+        
+    </style>
+    <script src="navbar.js"></script>
+    <div id="contentManagerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white w-full max-w-7xl h-[85vh] rounded-xl overflow-hidden shadow-xl flex flex-col frame-size">
+    <div class="flex items-center justify-between px-4 py-3 border-b">
+      <div class="font-semibold">จัดการเนื้อหา • <span id="contentWasteLabel" class="text-gray-600"></span></div>
+      <div class="flex items-center gap-3">
+        <a id="contentManagerNewTab" href="#" target="_blank" class="text-sm text-gray-600 hover:text-gray-900 underline"></a>
+        <button class="p-2 rounded-lg hover:bg-gray-100" onclick="closeContentManager()" aria-label="ปิด">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    <iframe id="contentManagerFrame" class="w-full flex-1 border-0" src="about:blank"></iframe>
+  </div>
+</div>
+
+<script>
+  function openContentManager(trashId, name) {
+    const modal = document.getElementById('contentManagerModal');
+    const frame = document.getElementById('contentManagerFrame');
+    const label = document.getElementById('contentWasteLabel');
+    const newTab = document.getElementById('contentManagerNewTab');
+
+    const url = `manage_trash_content.html?trashId=${encodeURIComponent(trashId)}`;
+    label.textContent = `#${trashId} – ${name}`;
+    newTab.href = url;
+    frame.src = url;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeContentManager() {
+    const modal = document.getElementById('contentManagerModal');
+    const frame = document.getElementById('contentManagerFrame');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    frame.src = 'about:blank';
+  }
+</script>
+<script>
+  // Override again to ensure our handler is the last definition
+  window.openContentManager = function(trashId, name){
+    if (typeof editWasteItem === 'function') {
+      editWasteItem(trashId, true);
+    }
+  }
+</script>
+    </body>
+</html>

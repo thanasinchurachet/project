@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap');
+/* Design tokens: colors, radii, shadows, typography */
+:root {
+  /* Brand */
+  --color-brand: #10b981;
+  --color-brand-strong: #059669;
+  --color-brand-accent: #218860;
+  --color-brand-deep: #1a6d4c;
+  --color-brand-dark: #065f46;
+  --color-brand-100: #d1fae5;
+
+  /* Surfaces & background */
+  --color-bg: #f0f9f0;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f9f9f9;
+  --color-surface-soft: #f5f5f5; /* cards */
+  --color-surface-alt: #f8f9fa;
+
+  /* Borders */
+  --color-border: #e5e7eb;
+  --color-border-muted: #cccccc;
+
+  /* Text & status */
+  --color-text: #111827;
+  --color-text-muted: #6b7280;
+  --color-like-inactive: #9ca3af;
+  --color-like-active: #ef4444;
+
+  /* Overlays */
+  --color-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Radii */
+  --radius-lg: 12px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-soft: 0 4px 8px rgba(0, 0, 0, 0.05);
+
+  /* Typography */
+  --font-sans: 'Kanit', system-ui, -apple-system, Segoe UI, Roboto,
+               'Helvetica Neue', Arial, 'Noto Sans Thai', 'Noto Sans',
+               sans-serif;
+}
+
+html, body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+}

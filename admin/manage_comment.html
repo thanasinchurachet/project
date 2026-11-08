@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>จัดการคอมเมนต์ที่ถูกรายงาน - Admin</title>
+
+    <!-- Tailwind / Fonts / Icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+      body {
+        font-family: "Kanit", sans-serif;
+      }
+      /* Video embed (16:9) */
+      .video-embed{ position:relative; width:100%; background:#000; border-radius:12px; overflow:hidden; }
+      .video-embed::before{ content:""; display:block; padding-top:56.25%; }
+      .video-embed iframe, .video-embed video{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+      .table-hover tr {
+        transition: all 0.2s ease;
+      }
+      .table-hover tr:hover {
+        transform: translateX(4px);
+        background-color: #f0fdf4 !important;
+      }
+      .modal-fade-in {
+        animation: modalFadeIn 0.25s ease forwards;
+      }
+      @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.98); }
+        to   { opacity: 1; transform: scale(1); }
+      }
+      .count-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
+        margin-left: 8px;
+        white-space: nowrap;
+      }
+      .count-red {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+      }
+      .count-amber {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+      }
+      .row-flag-red {
+        box-shadow: inset 3px 0 0 0 #ef4444;
+        background: #fff1f2;
+      }
+      .avatar-stack { display: flex; flex-shrink: 0; }
+      .avatar-stack img {
+        width: 28px; height: 28px; border-radius: 9999px;
+        object-fit: cover; border: 2px solid #fff; margin-left: -8px;
+      }
+      .avatar-stack img:first-child { margin-left: 0; }
+      /* Custom line clamp for Tailwind 2 without plugin */
+      .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .scroll-area {
+        max-height: 60vh;
+        overflow: auto;
+      }
+      .modal-body-max {
+        max-height: 70vh;
+        overflow: auto;
+      }
+    </style>
+  </head>
+
+   <body class="bg-gray-100">
+    <!-- Navigation containers -->
+    <div id="navbar-container"></div>
+
+    <!-- Main Content -->
+    <div class="pt-16 md:ml-64">
+      <div class="p-6">
+        <!-- Header Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div class="flex flex-wrap justify-between items-center">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-800">
+                จัดการคอมเมนต์ที่ถูกรายงาน
+              </h1>
+              <p class="text-gray-600" id="totalReports">กำลังโหลดข้อมูล...</p>
+            </div>
+
+            <div class="flex space-x-4 items-center">
+              <select
+                id="statusFilter"
+                class="rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+              >
+                <option value="pending">รอดำเนินการ</option>
+                <option value="handled">จัดการแล้ว</option>
+                <option value="all">ทั้งหมด</option>
+              </select>
+
+              <!-- บังคับจัดกลุ่มตามคอมเมนต์ -->
+              <select
+                id="groupBy"
+                class="rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 hidden"
+              >
+                <option value="comment" selected>จัดกลุ่มตามคอมเมนต์</option>
+              </select>
+
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="ค้นหาคอมเมนต์..."
+                class="rounded-lg border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Table -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+          <table class="w-full table-hover">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ลำดับ</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  วันที่รายงานล่าสุด
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ข้อความคอมเมนต์
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  โพสต์
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ผู้รายงาน
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  สถานะ
+                </th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  จัดการ
+                </th>
+              </tr>
+            </thead>
+            <tbody id="reportsTableBody" class="text-center"></tbody>
+          </table>
+
+          <!-- Pagination -->
+          <div class="bg-gray-50 px-6 py-3 flex items-center justify-between">
+            <div class="flex-1 flex justify-between sm:hidden">
+              <button id="prevButtonMobile" class="btn-pagination">ก่อนหน้า</button>
+              <button id="nextButtonMobile" class="btn-pagination">ถัดไป</button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p class="text-sm text-gray-700" id="paginationInfo"></p>
+              </div>
+              <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" id="pagination"></nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comment Detail Modal -->
+    <div id="commentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+      <div class="bg-white rounded-xl shadow-2xl w-11/12 max-w-5xl modal-fade-in">
+        <div class="p-6 border-b border-gray-200">
+          <div class="flex justify-between items-center">
+            <h3 class="text-2xl font-bold text-gray-800">รายละเอียดคอมเมนต์ที่ถูกรายงาน</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+        </div>
+        <div class="p-6 modal-body-max" id="modalContent"></div>
+        <div class="p-6 border-t border-gray-200 flex justify-end space-x-4" id="modalFooter">
+          <button id="ignoreBtn" onclick="ignoreReport()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center">
+            <i class="fas fa-times mr-2"></i>ไม่ดำเนินการ (ทั้งหมด)
+          </button>
+         
+          <button id="hideBtn" onclick="hideComment()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center">
+            <i class="fas fa-eye-slash mr-2"></i>ซ่อนคอมเมนต์
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentSelection = null; // กลุ่มที่เปิดในโมดัล
+      let currentPage = 1;
+      const limit = 8;
+
+      let lastRawReports = [];
+      let lastGroupedReports = [];
+      let bulkAbort = null; // ใช้ยกเลิกการทำงานระหว่างอัปเดต
+
+      function thaiDateTime(d) {
+        try {
+          const dt = new Date(d);
+          return dt.toLocaleString("th-TH", {
+            year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
+          });
+        } catch { return d; }
+      }
+
+      // วันที่แบบสั้น: 2 ต.ค 68
+      function thaiDateShort(d) {
+        try {
+          const dt = new Date(d);
+          if (isNaN(dt)) return d;
+          const months = [
+            "ม.ค","ก.พ","มี.ค","เม.ย","พ.ค","มิ.ย",
+            "ก.ค","ส.ค","ก.ย","ต.ค","พ.ย","ธ.ค"
+          ];
+          const day = dt.getDate();
+          const month = months[dt.getMonth()];
+          const beYear = dt.getFullYear() + 543;
+          const yy = String(beYear).slice(-2);
+          return `${day} ${month} ${yy}`;
+        } catch { return d; }
+      }
+
+      function aggregateStatus(statuses) {
+        if (statuses.includes("pending")) return "pending";
+        if (statuses.includes("hidden")) return "hidden";
+        if (statuses.includes("visible")) return "visible";
+        return "ignored";
+      }
+
+      function groupByComment(raw) {
+        const map = new Map();
+        for (const r of raw) {
+          const key = `${r.postID}_${r.commentID}`;
+          if (!map.has(key)) {
+            map.set(key, {
+              groupKey: key,
+              postID: r.postID, commentID: r.commentID,
+              post_title: r.post_title, post_image: r.post_image,
+              comment_content: r.comment_content,
+              commenter_name: r.commenter_name, commenter_image: r.commenter_image,
+              latestReportDate: r.Report_date,
+              reporters: [], reportIds: [], actionStatuses: [], raw: [],
+            });
+          }
+          const g = map.get(key);
+          g.latestReportDate = new Date(r.Report_date) > new Date(g.latestReportDate) ? r.Report_date : g.latestReportDate;
+          g.reporters.push({
+            name: r.reporter_name, image: r.reporter_image,
+            reason: r.reason || "ไม่ระบุ", date: r.Report_date,
+            reportId: r.reportId || r.reportID, action_status: r.action_status,
+          });
+          g.reportIds.push(r.reportId || r.reportID);
+          g.actionStatuses.push(r.action_status);
+          g.raw.push(r);
+        }
+        const arr = Array.from(map.values()).map((g) => {
+          g.report_count = g.reporters.length;
+          g.action_status = aggregateStatus(g.actionStatuses);
+          return g;
+        });
+        arr.sort((a, b) => {
+          if (b.report_count !== a.report_count) return b.report_count - a.report_count;
+          return new Date(b.latestReportDate) - new Date(a.latestReportDate);
+        });
+        return arr;
+      }
+
+      async function loadReports() {
+        try {
+          const status = document.getElementById("statusFilter").value;
+          const search = document.getElementById("searchInput").value;
+
+          const url = `get_comment_reports.php?status=${status}&page=${currentPage}&limit=${limit}&search=${encodeURIComponent(search)}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          if (!data.success) throw new Error(data.message || "โหลดข้อมูลไม่สำเร็จ");
+
+          lastRawReports = data.data.reports || [];
+          lastGroupedReports = groupByComment(lastRawReports);
+
+          updateTable(lastGroupedReports);
+          updatePagination(data.data.total, data.data.page, data.data.limit);
+
+          const totalGroups = lastGroupedReports.length;
+          const totalReports = lastRawReports.length;
+          document.getElementById("totalReports").textContent =
+            `คอมเมนต์ที่ถูกรายงาน: ${totalGroups} รายการ`;
+        } catch (error) {
+          console.error("Error:", error);
+          Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: error.message || "ไม่สามารถโหลดข้อมูลได้" });
+        }
+      }
+
+      function updatePagination(total, apiCurrentPage, limit) {
+        const totalPages = Math.ceil(total / limit);
+        const pagination = document.getElementById("pagination");
+        const paginationInfo = document.getElementById("paginationInfo");
+        const start = (apiCurrentPage - 1) * limit + 1;
+        const end = Math.min(apiCurrentPage * limit, total);
+        const groupsCount = (lastGroupedReports || []).length;
+        const startDisplay = groupsCount > 0 ? 1 : 0;
+        const endDisplay = groupsCount;
+        paginationInfo.textContent = groupsCount > 0
+          ? `แสดง ${startDisplay} ถึง ${endDisplay} จากทั้งหมด ${groupsCount} แถว`
+          : "ไม่พบรายการ";
+        currentPage = apiCurrentPage;
+
+        pagination.innerHTML = "";
+
+        const makeBtn = (label, active, onClick, extra="") => {
+          const btn = document.createElement("button");
+          btn.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${active ? "bg-green-600 text-white hover:bg-green-700" : "bg-white text-gray-700 hover:bg-gray-50"} ${extra}`;
+          btn.textContent = label;
+          btn.onclick = onClick;
+          return btn;
+        };
+
+        pagination.appendChild(makeBtn("ก่อนหน้า", false, () => { if (apiCurrentPage>1){ currentPage--; loadReports(); }}, "rounded-l-md"));
+
+        let startPage = Math.max(1, apiCurrentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+        for (let i = startPage; i <= endPage; i++) {
+          pagination.appendChild(makeBtn(String(i), apiCurrentPage === i, () => { currentPage = i; loadReports(); }));
+        }
+
+        pagination.appendChild(makeBtn("ถัดไป", false, () => { if (apiCurrentPage<totalPages){ currentPage++; loadReports(); }}, "rounded-r-md"));
+      }
+
+      function reporterAvatars(reporters) {
+        const maxShow = 3;
+        const shown = reporters.slice(0, maxShow);
+        const remain = reporters.length - shown.length;
+        const imgs = shown
+          .map((r) => `<img src="../img/profile_uploads/${r.image || "default-avatar.jpg"}" alt="${r.name}">`)
+          .join("");
+        const more = remain > 0 ? `<span class="ml-2 text-xs text-gray-500">+${remain}</span>` : "";
+        return `<div class="avatar-stack">${imgs}</div>${more}`;
+      }
+
+      function updateTable(groups) {
+        const tbody = document.getElementById("reportsTableBody");
+        tbody.innerHTML = "";
+
+        if (!groups || groups.length === 0) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="7" class="px-6 py-10 text-center text-gray-500"><i class=\"fas fa-search fa-2x mb-2\"></i><p>ไม่พบข้อมูลรายงาน</p></td>`;
+          tbody.appendChild(tr);
+          return;
+        }
+
+        const statusClass = { pending: "bg-yellow-100 text-yellow-800", hidden: "bg-red-100 text-red-800", ignored: "bg-gray-100 text-gray-800", visible: "bg-green-100 text-green-800" };
+        const statusText = { pending: "รอดำเนินการ", hidden: "ซ่อนแล้ว", ignored: "ไม่ดำเนินการ", visible: "แสดงอยู่" };
+
+        let rowIndex = 0;
+        for (const g of groups) {
+          const tr = document.createElement("tr");
+          const badgeClass = g.report_count >= 10 ? "count-red" : "count-amber";
+          const rowFlagClass = g.report_count >= 10 ? "row-flag-red" : "";
+
+          tr.className = `hover:bg-gray-50 ${rowFlagClass} text-center`;
+          rowIndex++;
+          tr.innerHTML = `
+            <td class="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-600">${rowIndex}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">${thaiDateShort(g.latestReportDate)}</div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center justify-center" style="justify-self: left;">
+                <div class="flex-shrink-0 h-8 w-8">
+                  <img class="h-8 w-8 rounded-full object-cover"
+                       src="../img/profile_uploads/${g.commenter_image || "default-avatar.jpg"}"
+                       alt="รูปโปรไฟล์ผู้คอมเมนต์">
+                </div>
+                <div class="ml-4" style="text-align: left;">
+                  <div class="text-sm font-medium text-gray-900">${g.commenter_name || "-"}</div>
+                  <div class="text-sm text-gray-500 line-clamp-1" title="${(g.comment_content || "").replace(/"/g,'&quot;')}">${g.comment_content || "-"}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900 line-clamp-1" title="${(g.post_title || "").replace(/"/g,'&quot;')}">${g.post_title || "-"}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center justify-center">
+                ${reporterAvatars(g.reporters)}
+                <span class="count-badge ${badgeClass}"> ${g.report_count}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass[g.action_status]}">${statusText[g.action_status]}</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+              <button onclick="event.preventDefault(); showCommentDetail('${g.groupKey}')" class="tooltip action-btn p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100">
+  <i class="fas fa-eye mr-1 default_pointer_land"></i>
+</button>
+            </td>
+          `;
+          tr.dataset.groupKey = g.groupKey;
+          tr.dataset.reportIds = JSON.stringify(g.reportIds || []);
+          tbody.appendChild(tr);
+        }
+      }
+
+      function buildReasonsSummary(reporters) {
+        const map = new Map();
+        for (const r of reporters) {
+          const key = (r.reason || "ไม่ระบุ").trim();
+          map.set(key, (map.get(key) || 0) + 1);
+        }
+        const arr = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+        if (arr.length === 0) return "";
+        return `
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h5 class="font-medium text-blue-800 mb-2">สรุปเหตุผลยอดนิยม</h5>
+            <ul class="text-sm text-blue-900 space-y-1">
+              ${arr.slice(0, 10).map(([reason, count]) => `<li>• ${reason} <span class="text-xs text-blue-700">(${count} ครั้ง)</span></li>`).join("")}
+            </ul>
+          </div>
+        `;
+      }
+
+      function buildReporterList(reporters) {
+        const preview = 50; // แสดงก่อน 50 คน
+        const hasMore = reporters.length > preview;
+        const visible = reporters.slice(0, preview);
+        const hidden = reporters.slice(preview);
+
+        const itemHTML = (r) => `
+          <div class="p-3 flex items-start space-x-3">
+            <img src="../img/profile_uploads/${r.image || "default-avatar.jpg"}" class="w-9 h-9 rounded-full object-cover" loading="lazy" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <div class="font-medium text-gray-900 truncate">${r.name}</div>
+                <div class="text-xs text-gray-500 ml-3">${thaiDateTime(r.date)}</div>
+              </div>
+              <div class="mt-1 text-sm text-gray-700 bg-gray-50 p-2 rounded">${r.reason}</div>
+            </div>
+          </div>`;
+
+        return `
+          <div class="border border-gray-200 rounded-lg divide-y scroll-area" id="reporterList">
+            ${visible.map(itemHTML).join("")}
+            ${hasMore ? `<div id="moreReporters" class="hidden">${hidden.map(itemHTML).join("")}</div>` : ""}
+          </div>
+          ${hasMore ? `
+            <div class="flex justify-center mt-3">
+              <button id="toggleMoreBtn" class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg">
+                แสดงเพิ่ม (${hidden.length})
+              </button>
+            </div>
+          ` : ""}
+        `;
+      }
+
+      async function showCommentDetail(keyOrReportId) {
+        try {
+          const modal = document.getElementById("commentModal");
+          const modalContent = document.getElementById("modalContent");
+          const modalFooter = document.getElementById("modalFooter");
+
+          modalContent.innerHTML = `<div class="flex items-center justify-center h-64"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div></div>`;
+          modal.classList.remove("hidden"); modal.classList.add("flex");
+
+          const parts = String(keyOrReportId).split("_");
+          let group;
+          if (parts.length === 2) {
+            const groupKey = keyOrReportId;
+            group = lastGroupedReports.find((g) => g.groupKey === groupKey);
+            if (!group) throw new Error("ไม่พบข้อมูลกลุ่มรายงาน");
+          } else {
+            const resp = await fetch(`get_comment_report_detail.php?reportId=${encodeURIComponent(keyOrReportId)}`);
+            const data = await resp.json();
+            if (!data.success) throw new Error(data.message || "โหลดข้อมูลไม่สำเร็จ");
+            const r = data.data;
+            const groupKey = `${r.postID}_${r.commentID}`;
+            const related = lastRawReports.filter((x) => `${x.postID}_${x.commentID}` === groupKey);
+            if (!related.length) {
+              related.push({
+                ...r,
+                reporter_name: r.reporter_name, reporter_image: r.reporter_image,
+                reportId: r.reportId || r.reportID, action_status: r.action_status || "pending",
+              });
+            }
+            const grouped = groupByComment(related);
+            group = grouped[0];
+          }
+
+          currentSelection = group;
+
+          // Fetch full post detail to know video fields
+          let postDetail = null;
+          try {
+            const resp = await fetch(`../get_post_detail.php?postId=${group.postID}&_=${Date.now()}`, { cache: 'no-store' });
+            const json = await resp.json();
+            if (json && json.success) postDetail = json.data;
+          } catch(_){}
+
+          // Helper: ensure TikTok embed script
+          const ensureTikTok = () => {
+            if (!document.querySelector('script[data-tiktok-embed]')){
+              const s = document.createElement('script');
+              s.src = 'https://www.tiktok.com/embed.js'; s.async = true; s.setAttribute('data-tiktok-embed','1');
+              document.body.appendChild(s);
+            } else if (window.tiktokEmbedLoad) { try{ window.tiktokEmbedLoad(); }catch(_){} }
+            setTimeout(()=>{ try{ window.tiktokEmbedLoad && window.tiktokEmbedLoad(); }catch(_){} }, 0);
+          };
+
+          // Helper: build platform embed URL
+          const getEmbedUrl = (platform, url) => {
+            platform = String(platform||'').toLowerCase();
+            if (!url) return null;
+            if (platform === 'youtube') {
+              const m = String(url).match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/);
+              return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+            }
+            if (platform === 'instagram') {
+              const m = String(url).match(/instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/);
+              return m ? `https://www.instagram.com/${m[1]}/${m[2]}/embed` : null;
+            }
+            if (platform === 'facebook') {
+              return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=0`;
+            }
+            return null;
+          };
+
+          const renderVideoHtmlAdmin = (post) => {
+            const vs = String(post?.video_source||'none');
+            if (vs === 'url' && post?.video_url) {
+              const plat = String(post?.video_platform||'').toLowerCase();
+              if (plat === 'tiktok') {
+                const m = String(post.video_url||'').match(/\/video\/(\d+)/);
+                if (m && m[1]) {
+                  return `<div class="video-embed"><iframe src="https://www.tiktok.com/embed/v2/video/${m[1]}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
+                }
+                return '';
+              }
+              const src = getEmbedUrl(plat, post.video_url);
+              if (src) {
+                return `<div class="video-embed"><iframe src="${src}" allowfullscreen loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>`;
+              }
+              return '';
+            }
+            if (vs === 'file' && post?.video_path) {
+              const path = `../uploads/videos/${post.video_path}`;
+              return `<div class="video-embed"><video controls preload="metadata" src="${path}"><source src="${path}" type="video/mp4">ไม่สามารถเล่นวิดีโอได้</video></div>`;
+            }
+            return '';
+          };
+
+          const mediaHtml = postDetail ? renderVideoHtmlAdmin(postDetail) : '';
+
+          modalContent.innerHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <h4 class="text-lg font-semibold border-b pb-2">ข้อมูลโพสต์</h4>
+                <div class="flex space-x-4">
+                  
+                  <div>
+                    <h5 class="font-medium text-green-800 line-clamp-2" title="${(group.post_title || "").replace(/"/g,'&quot;')}">
+                      ${group.post_title || "-"}
+                    </h5>
+                    <a href="admin_post_detail.php?id=${group.postID}" target="_blank"
+                      class="text-sm text-green-600 hover:text-green-800 flex items-center mt-2">
+                      <i class="fas fa-external-link-alt mr-1"></i> ดูโพสต์เต็ม
+                    </a>
+                  </div>
+                </div>
+
+                ${mediaHtml ? `<div class="mt-3">${mediaHtml}</div>` : ``}
+
+                ${postDetail ? `
+                  <div class="mt-3 p-3 bg-white border rounded-lg">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <img src="../img/profile_uploads/${postDetail.avatar_path || 'default.jpg'}"
+                             onerror="this.src='../img/profile_uploads/default.jpg'"
+                             class="w-10 h-10 rounded-full object-cover mr-3" alt="ผู้โพสต์">
+                        <div>
+                          <div class="font-medium text-gray-800">${postDetail.username || '-'}</div>
+                          <div class="text-xs text-gray-500">ผู้โพสต์</div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <a href="user_detail.php?id=${postDetail.userID}"
+                           class="text-green-600 hover:text-green-800 text-sm flex items-center">
+                          <i class="fas fa-user mr-1"></i> ดูโปรไฟล์
+                        </a>
+                        <a href="user_posts.php?id=${postDetail.userID}"
+                           class="text-green-600 hover:text-green-800 text-sm flex items-center">
+                          <i class="fas fa-list mr-1"></i> ดูโพสต์ทั้งหมด
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ` : ``}
+
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h4 class="font-medium text-gray-800 mb-2">คอมเมนต์ที่ถูกรายงาน</h4>
+                  <div class="flex items-start space-x-3">
+                    <img src="../img/profile_uploads/${group.commenter_image || "default-avatar.jpg"}"
+                         class="w-10 h-10 rounded-full object-cover" alt="รูปผู้คอมเมนต์" />
+                    <div>
+                      <div class="font-medium text-gray-800">${group.commenter_name || "-"}</div>
+                      <p class="mt-1 text-gray-700 p-2 bg-white rounded border border-gray-200">${group.comment_content || "-"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-lg font-semibold">ผู้รายงานทั้งหมด</h4>
+                  <span class="count-badge ${group.report_count >= 10 ? "count-red" : "count-amber"}">รายงาน ${group.report_count}</span>
+                </div>
+
+                ${buildReasonsSummary(group.reporters)}
+                ${buildReporterList(group.reporters)}
+              </div>
+            </div>
+          `;
+
+          // Toggle "show more"
+          const toggleBtn = document.getElementById("toggleMoreBtn");
+          if (toggleBtn) {
+            toggleBtn.addEventListener("click", () => {
+              const more = document.getElementById("moreReporters");
+              if (!more) return;
+              const isHidden = more.classList.contains("hidden");
+              more.classList.toggle("hidden");
+              toggleBtn.textContent = isHidden ? "ย่อรายการ" : `แสดงเพิ่ม (${more.children.length})`;
+            });
+          }
+
+          // Footer state
+          if (group.action_status === "hidden" || group.action_status === "ignored") {
+            modalFooter.innerHTML = `<div class="ml-auto px-4 py-2 bg-gray-200 text-gray-800 rounded-lg flex items-center"><i class="fas fa-check-circle mr-2"></i>ดำเนินการแล้ว</div>`;
+          } else {
+            // keep default buttons
+          }
+        } catch (error) {
+          console.error("Error in showCommentDetail:", error);
+          Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: error.message || "ไม่สามารถโหลดข้อมูลได้" });
+        }
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("commentModal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        currentSelection = null;
+      }
+
+      // === Robust bulk action helpers ===
+      async function callUpdateAPI(formData, signal, timeoutMs = 20000) {
+        // race with timeout; pass AbortSignal for user-cancel
+        const fetchPromise = fetch("update_comment_report.php", { method: "POST", body: formData, signal });
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("การเชื่อมต่อนานเกินไป (Timeout)")), timeoutMs)
+        );
+        const resp = await Promise.race([fetchPromise, timeoutPromise]);
+        const text = await resp.text();
+        let data;
+        try { data = JSON.parse(text); }
+        catch (e) { throw new Error("เซิร์ฟเวอร์ตอบกลับไม่ใช่ JSON ที่ถูกต้อง: " + text.slice(0, 200)); }
+        if (!resp.ok || !data.success) throw new Error(data?.message || "คำขอล้มเหลว");
+        return data;
+      }
+
+      async function tryBulkOnce(group, action, notifyMessage) {
+       const fd = new FormData();
+fd.append("action", action);
+fd.append("postID", group.postID);
+fd.append("commentID", group.commentID);
+fd.append("notifyMessage", notifyMessage || "");
+
+// ส่ง reportIds เป็น array
+// ถ้ายังใช้อยู่จริง ๆ ให้กัน null ไว้
+(group.reportIds || []).forEach(id => fd.append("reportIds[]", id));
+
+        return callUpdateAPI(fd, bulkAbort?.signal);
+      }
+
+      async function tryChunkArray(group, action, notifyMessage, chunkSize = 20) {
+        const ids = group.reportIds || [];
+        let done = 0;
+        for (let i = 0; i < ids.length; i += chunkSize) {
+          if (bulkAbort?.signal?.aborted) throw new Error("ผู้ใช้ยกเลิกการทำงาน");
+          const chunk = ids.slice(i, i + chunkSize);
+          const fd = new FormData();
+          fd.append("action", action);
+          fd.append("scope", "all");
+          fd.append("postID", group.postID);
+          fd.append("commentID", group.commentID);
+          fd.append("notifyMessage", notifyMessage || "");
+          chunk.forEach((id) => fd.append("reportID[]", id));
+          await callUpdateAPI(fd, bulkAbort?.signal);
+          done += chunk.length;
+          updateProgress(done, ids.length);
+        }
+      }
+
+      async function tryPerIdConcurrent(group, action, notifyMessage, concurrency = 5) {
+        const ids = group.reportIds || [];
+        let index = 0;
+        let done = 0;
+        const worker = async () => {
+          while (true) {
+            if (bulkAbort?.signal?.aborted) throw new Error("ผู้ใช้ยกเลิกการทำงาน");
+            const i = index++;
+            if (i >= ids.length) break;
+            const id = ids[i];
+            const fd = new FormData();
+            fd.append("action", action);
+            fd.append("scope", "all");
+            fd.append("postID", group.postID);
+            fd.append("commentID", group.commentID);
+            fd.append("reportID", id);
+            fd.append("reportId", id);
+            fd.append("notifyMessage", notifyMessage || "");
+            await callUpdateAPI(fd, bulkAbort?.signal);
+            done++;
+            updateProgress(done, ids.length);
+          }
+        };
+        const tasks = Array(Math.min(concurrency, ids.length)).fill(0).map(worker);
+        await Promise.all(tasks);
+      }
+
+      function updateProgress(done, total) {
+        const el = document.getElementById("bulkProgressText");
+        const bar = document.getElementById("bulkProgressBar");
+        const pct = Math.round((done / total) * 100);
+        if (el) el.textContent = `กำลังอัปเดต ${done}/${total} รายการ...`;
+        if (bar) bar.style.width = `${pct}%`;
+      }
+
+      async function runGroupAction(action) {
+  if (!currentSelection) return;
+  const group = currentSelection;
+
+  const notifyMap = {
+    ignore: "คอมเมนต์ที่คุณรายงานได้รับการตรวจสอบแล้ว แต่ไม่พบการละเมิดกฎขอบคุณสำหรับการแจ้งเตือน",
+    hide:   "คอมเมนต์ที่คุณรายงานได้รับการตรวจสอบแล้ว และเราได้ซ่อนคอมเมนต์ดังกล่าวเนื่องจากละเมิดกฎ ขอบคุณสำหรับการช่วยดูแลชุมชนของเรา",
+  };
+  const notifyMessage = notifyMap[action] || "";
+
+  // สร้าง payload เรียบง่าย ยิงครั้งเดียว
+  const fd = new FormData();
+  fd.append("action", action);
+  fd.append("postID", group.postID);
+  fd.append("commentID", group.commentID);
+  fd.append("notifyMessage", notifyMessage);
+
+
+  try {
+    // เรียกใช้ของเดิมได้เลย (แค่ไม่ต้องส่ง reportIds)
+    await callUpdateAPI(fd, undefined, 10000);
+
+    await Swal.fire({
+      icon: "success",
+      title: "สำเร็จ",
+      text: action === "hide"
+        ? "ซ่อนคอมเมนต์และอัปเดตรายงานทั้งหมดของคอมเมนต์นี้เรียบร้อยแล้ว"
+        : "บันทึกว่าไม่ดำเนินการกับรายงานทั้งหมดของคอมเมนต์นี้เรียบร้อยแล้ว",
+      confirmButtonColor: "#10b981",
+    });
+
+    closeModal();
+    loadReports();
+  } catch (err) {
+    Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err.message || "ไม่สามารถบันทึกข้อมูลได้" });
+  }
+}
+
+      async function ignoreReport() {
+        // เพิ่มการยืนยันก่อนดำเนินการตามที่ร้องขอ
+        const ok = await Swal.fire({
+          title: "ยืนยันการไม่ดำเนินการ",
+          text: "คุณต้องการบันทึกว่า 'ไม่ดำเนินการ' กับการรายงานคอมเมนต์นี้ทั้งหมด ใช่หรือไม่?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "ใช่, ไม่ดำเนินการ",
+          cancelButtonText: "ยกเลิก",
+          confirmButtonColor: "#6b7280",
+        });
+        if (!ok.isConfirmed) return;
+        await runGroupAction("ignore");
+      }
+
+      async function hideComment() {
+        const ok = await Swal.fire({
+          title: "ยืนยันการซ่อนคอมเมนต์",
+          text: "คุณต้องการซ่อนคอมเมนต์นี้เนื่องจากละเมิดกฎของชุมชน ใช่หรือไม่?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#6b7280",
+          confirmButtonText: "ใช่, ซ่อนคอมเมนต์",
+          cancelButtonText: "ยกเลิก",
+        });
+        if (!ok.isConfirmed) return;
+        await runGroupAction("hide");
+      }
+
+      // เลือกผู้รายงานบางส่วนแล้วทำ "ไม่ดำเนินการ" เฉพาะที่เลือก
+      async function partialIgnore() {
+        if (!currentSelection) return;
+        const group = currentSelection;
+        const reporters = group.reporters || [];
+        if (!reporters.length) {
+          Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูลผู้รายงาน', text: 'ไม่พบรายชื่อผู้รายงานสำหรับคอมเมนต์นี้' });
+          return;
+        }
+
+        const htmlList = reporters.map((r) => {
+          const rid = (r.reportId || (group.postID + '_' + group.commentID + '_' + r.userID));
+          const safeName = String(r.name||'-').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          const safeReason = String(r.reason||'-').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          const img = `../img/profile_uploads/${r.image || 'default-avatar.jpg'}`;
+          return `
+            <label class="flex items-start gap-3 p-2 border-b">
+              <input type="checkbox" class="partial-chk mt-1" value="${rid}" data-userid="${r.userID}" checked>
+              <img src="${img}" class="w-8 h-8 rounded-full object-cover"/>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-900 truncate">${safeName}</div>
+                <div class="text-xs text-gray-600 mt-0.5">${safeReason}</div>
+              </div>
+            </label>`;
+        }).join('');
+
+        const html = `
+          <div class="text-left">
+            <p class="mb-2 text-sm text-gray-700">เลือกผู้รายงานที่ต้องการบันทึกเป็น \"ไม่ดำเนินการ\" (เฉพาะที่เลือก)</p>
+            <div class="mb-2 flex items-center gap-3">
+              <button type="button" id="partialSelectAll" class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded">เลือกทั้งหมด</button>
+              <button type="button" id="partialSelectNone" class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded">ไม่เลือกทั้งหมด</button>
+            </div>
+            <div id="partialList" class="max-h-72 overflow-auto border rounded">${htmlList}</div>
+          </div>`;
+
+        const res = await Swal.fire({
+          title: 'ไม่ดำเนินการบางส่วน',
+          html,
+          width: 700,
+          confirmButtonText: 'ยืนยัน',
+          cancelButtonText: 'ยกเลิก',
+          showCancelButton: true,
+          didOpen: () => {
+            const root = Swal.getHtmlContainer();
+            const qs = (sel) => root.querySelector(sel);
+            qs('#partialSelectAll')?.addEventListener('click', ()=>{
+              root.querySelectorAll('.partial-chk').forEach(ch=> ch.checked = true);
+            });
+            qs('#partialSelectNone')?.addEventListener('click', ()=>{
+              root.querySelectorAll('.partial-chk').forEach(ch=> ch.checked = false);
+            });
+          }
+        });
+        if (!res.isConfirmed) return;
+
+        const root = Swal.getHtmlContainer();
+        const selected = Array.from(root?.querySelectorAll('.partial-chk:checked') || []);
+        if (!selected.length) {
+          await Swal.fire({ icon: 'info', title: 'ยังไม่ได้เลือก', text: 'กรุณาเลือกอย่างน้อย 1 รายการ' });
+          return;
+        }
+        const reportIds = selected.map(el => el.value);
+        const userIDs = selected.map(el => el.getAttribute('data-userid'));
+
+        const fd = new FormData();
+        fd.append('action', 'ignore_partial');
+        fd.append('postID', group.postID);
+        fd.append('commentID', group.commentID);
+        reportIds.forEach(id => fd.append('reportIds[]', id));
+        userIDs.forEach(uid => fd.append('userIDs[]', uid));
+
+        try {
+          await callUpdateAPI(fd, undefined, 15000);
+          await Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกว่าไม่ดำเนินการเฉพาะที่เลือกแล้ว', confirmButtonColor: '#10b981' });
+          closeModal();
+          loadReports();
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message || 'ไม่สามารถบันทึกข้อมูลได้' });
+        }
+      }
+
+      // Helper: debounce
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => { clearTimeout(timeout); func(...args); };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Load navbar
+      async function loadNavbar() {
+        try {
+          const response = await fetch("navbar.html");
+          const html = await response.text();
+          document.getElementById("navbar-container").innerHTML = html;
+          const scripts = document.getElementById("navbar-container").getElementsByTagName("script");
+          for (let script of scripts) { try { eval(script.innerHTML); } catch {} }
+        } catch (error) { console.error("Error loading navbar:", error); }
+      }
+
+      // Events
+      document.getElementById("statusFilter").addEventListener("change", () => { currentPage = 1; loadReports(); });
+      document.getElementById("searchInput").addEventListener("input", debounce(() => { currentPage = 1; loadReports(); }, 300));
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        document.getElementById("groupBy").value = "comment";
+        await loadNavbar();
+        await loadReports();
+      });
+    </script>
+
+    <script src="navbar.js"></script>
+  </body>
+</html>

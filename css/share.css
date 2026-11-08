@@ -1,0 +1,1898 @@
+@import url('./tokens.css');
+
+/* Font styles */
+select, input, button, .font-bold, .header, .footer {
+    font-family: var(--font-sans);
+}
+
+body {
+    background-color: var(--color-bg);
+    font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6, p, a, span, li {
+    font-family: var(--font-sans);
+}
+
+/* Layout & Containers */
+.rounded-xl {
+    border-radius: 3rem;
+}
+
+.py-16 {
+    padding-top: 0rem;
+    padding-bottom: 4rem;
+}
+dl, ol, ul {
+    margin-top: 0;
+    margin-bottom: 0rem;
+    padding-left: 0rem;
+}
+
+.modal-container {
+    top: 100px;
+}
+
+/* Search Bar */
+.search-bar .relative {
+    position: relative;
+    display: inline-block; /* เปลี่ยนเป็น inline-block */
+    width: auto; /* ให้ความกว้างขึ้นกับ input */
+}
+.flex.flex-wrap.gap-4.items-center {
+    justify-content: space-between;
+    width: 100%;
+}
+.flex.items-center.gap-3.w-full.lg\:w-auto.lg\:ml-auto {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+.search-bar {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+.search-input {
+    width: 300px;
+    padding: 12px 30px 12px 40px;
+    font-size: 14px;
+    border-radius: 25px;
+    border: 2px solid var(--color-border-muted);
+    background-color: var(--color-surface-muted);
+}
+
+.search-bar .fa-search {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    z-index: 1;
+    pointer-events: none; /* ป้องกันไม่ให้ไอคอนรบกวนการคลิก input */
+}
+
+
+.search-input::placeholder {
+    font-size: 12px;
+}
+
+/* Add Button */
+.green-circle {
+    background-color: var(--color-brand-accent);
+    color: #ffffff;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.green-circle:hover {
+    background-color: var(--color-brand-deep);
+}
+
+.green-circle i {
+    font-size: 20px;
+}
+
+/* Filters */
+.waste-type-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.waste-type-filters::-webkit-scrollbar {
+    display: none;
+}
+
+.filter-chip {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+}
+
+.filter-chip.active {
+    background-color: var(--color-brand-strong);
+    color: #ffffff;
+    border-color: var(--color-brand-strong);
+}
+
+.border-b {
+    border-bottom-width: 1px;
+}
+
+.filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.filter-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+/* Grid Layout */
+.share-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+/* Cards */
+.share-card {
+    background: var(--color-surface-soft);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.share-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+}
+
+.share-card-content {
+    padding: 1rem;
+}
+
+/* Images */
+
+
+.img-fit {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Like Button */
+.like-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+
+.like-button i {
+    color: var(--color-like-inactive);
+    transition: color 0.2s;
+}
+
+.like-button.active i {
+    color: var(--color-like-active);
+}
+
+.likes-count {
+    margin-left: 0.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+}
+
+.like-button:hover i {
+    transform: scale(1.1);
+}
+
+/* Modal */
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-overlay);
+    z-index: 50;
+}
+
+.modal-backdrop.active {
+    display: block;
+}
+
+.modal-content {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Profile */
+.profile-header {
+    background: linear-gradient(135deg, var(--color-brand-accent) 0%, var(--color-brand-deep) 100%);
+    padding: 2rem;
+    color: white;
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.profile-header button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.25rem;
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Comments */
+#commentsModal .modal-backdrop {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 0 !important; /* บังคับให้ไม่มี padding ด้านบน */
+}
+
+#commentsModal .modal-backdrop.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+/* Pagination */
+.pagination-controls button {
+    transition: all 0.3s ease;
+    min-width: 100px;
+}
+
+.pagination-controls button:disabled {
+    cursor: not-allowed;
+    background-color: var(--color-border-muted) !important;
+}
+
+.current-page {
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Actions Container */
+.actions-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+/* Media Queries */
+@media (min-width: 1024px) {
+    .actions-container {
+        margin-top: 0;
+        width: auto;
+    }
+
+    .border-b {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .waste-type-filters {
+        width: auto;
+        flex-wrap: nowrap;
+    }
+
+    .filter-section {
+        width: auto;
+        flex-wrap: nowrap;
+    }
+
+    .search-input {
+        width: 300px;
+    }
+    .search-bar {
+        justify-content: flex-end;
+        padding-right: 0;
+    }
+}
+@media (max-width: 1024px) {
+    .search-bar {
+        justify-content: center;
+    }
+    .search-input {
+        width: 300px;
+    }
+    .lg\:hidden {
+        display: flex !important;
+    }
+
+    /* Container styles */
+    .flex.gap-2.flex-wrap.w-full {
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+    .search-bar .relative {
+        display: inline-block;
+        width: auto;
+    }
+    .search-bar .fa-search {
+        left: 12px;  /* คงค่าระยะห่างจากขอบซ้ายเท่าเดิม */
+    }
+    /* Select styles */
+    select.filter-chip {
+        width: calc(50% - 0.5rem); /* แบ่งพื้นที่เท่าๆ กันสำหรับ 2 dropdown */
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        border: 1px solid #e5e7eb;
+        background-color: white;
+        font-size: 0.875rem;
+        cursor: pointer;
+        min-width: 120px;
+    }
+    @media (max-width: 480px) {
+        select.filter-chip {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+    }
+}
+@media (max-width: 1024px) {
+    .hidden.lg\:flex {
+        display: none !important;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .search-bar .relative {
+        display: inline-block;
+        width: auto;
+    }
+    
+    .search-input {
+        width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-input {
+        width: 150px;
+    }
+}
+/* Carousel Styles */
+/* Carousel Container */
+.carousel-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.carousel-item.active {
+    opacity: 1;
+    display: block;
+    z-index: 1;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: none;
+}
+
+/* Image Container */
+.img-container {
+    position: relative;
+    width: 100%;
+    height: 300px; /* ปรับความสูงตามต้องการ */
+    background-color: var(--color-surface-alt);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* Carousel Inner */
+.carousel-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Carousel Items */
+
+
+/* Carousel Controls */
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.carousel-control:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.carousel-control.prev {
+    left: 10px;
+}
+
+.carousel-control.next {
+    right: 10px;
+}
+
+/* Indicators */
+.carousel-indicators {
+    position: absolute;
+    bottom: 10px;
+    left: 35%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center; /* เพิ่มบรรทัดนี้เพื่อจัดกึ่งกลาง */
+    align-items: center; /* เพิ่มบรรทัดนี้เพื่อจัดแนวตั้ง */
+  
+    z-index: 2;
+}
+.indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    background-color: white;
+    transform: scale(1.2);
+}
+/* Profile Modal Styles */
+.profile-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.profile-modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 2rem;
+}
+
+.profile-modal-content {
+    width: 90%;
+    max-width: 800px;
+    background: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.profile-header {
+    background: #218860;
+    padding: 2rem;
+    color: white;
+    position: relative;
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+}
+
+.profile-details h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.profile-details p {
+    opacity: 0.9;
+    margin-bottom: 0.25rem;
+}
+
+.post-count {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    margin-top: 1rem;
+}
+
+.profile-posts {
+    padding: 2rem;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+}
+
+.profile-posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.close-profile {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.close-profile:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Prevent card interaction when modal is open */
+.modal-open {
+    overflow: hidden;
+}
+
+/* Prevent click propagation */
+.share-card-content {
+    pointer-events: auto;
+}
+iframe.w-full.aspect-video.rounded {
+    height: 308px;
+    width: auto;
+    justify-self: center;
+}
+
+.share-card-content button,
+.share-card-content img,
+.carousel-control,
+.indicator {
+    pointer-events: auto;
+}
+
+
+.profile-modal-header {
+    background: #218860;
+    padding: 2rem;
+    position: relative;
+}
+.profile-info-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+}
+.profile-user-info {
+    text-align: left;
+    color: white;
+}
+.profile-user-info h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+}
+.profile-user-info p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+}
+.profile-modal .carousel-container {
+    z-index: 2;
+}
+.profile-modal .carousel-control,
+.profile-modal .carousel-indicators {
+    z-index: 3;
+}
+.profile-modal .carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.3s;
+    display: none;
+}
+.profile-modal .carousel-item.active {
+    opacity: 1;
+    display: block;
+}
+.profile-modal-open .share-card .carousel-control,
+.profile-modal-open .share-card .carousel-indicators {
+    pointer-events: none;
+}
+.profile-modal .carousel-control:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.profile-modal-open {
+    overflow: hidden;
+}
+.modal-content * {
+    pointer-events: none;
+}
+#commentsModal {
+    overflow-y: auto !important;
+}
+#commentsModal select {
+    pointer-events: auto;
+    z-index: 1001;
+}
+#commentsModal * {
+    pointer-events: auto;
+}
+
+
+.modal-content select {
+    pointer-events: auto !important;
+    z-index: 1001 !important;
+}
+.modal-content button,
+.modal-content input,  /* เพิ่ม input */
+.mod-content select,    /* เพิ่ม select */
+.modal-content .carousel-control,
+.modal-content .carousel-indicators span {
+    pointer-events: auto;
+}
+.profile-modal {
+    pointer-events: auto;
+}
+.modal-post {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
+}
+.modal-post .img-container {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-modal .carousel-container * {
+    pointer-events: auto;
+}
+
+.profile-modal .modal-post button {
+    pointer-events: auto;
+}
+
+/* ป้องกันการ interaction กับการ์ดหลัก */
+.profile-modal.active ~ .share-grid {
+    pointer-events: none;
+}
+.modal-post .post-content {
+    padding: 1.5rem;
+    background-color: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+}
+
+.modal-post h3 {
+    color: #1f2937;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.modal-post p {
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.modal-post .like-button,
+.modal-post .comments-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.modal-post .like-button:hover,
+.modal-post .comments-button:hover {
+    background-color: #f3f4f6;
+}
+
+.profile-posts {
+    padding: 2rem;
+    background-color: #f3f4f6;
+}
+
+.profile-posts-grid {
+    gap: 1.5rem;
+}
+#commentsModal .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+#commentsModal .modal-content > div {
+    flex: 1;
+    overflow-y: auto;
+}
+
+#commentsModal #commentsContainer {
+    max-height: 60vh; /* เพิ่มพื้นที่แสดงคอมเมนต์ */
+    overflow-y: auto;
+}
+#commentsModal .modal-container {
+    width: 90%;
+    max-width: 700px;
+    margin-top: 0 !important; /* บังคับให้ชิดบน */
+    max-height: 95vh;
+    padding-top: 0px;
+}
+#commentsModal {
+    z-index: 10000 !important;
+}
+
+/* เพิ่มเพื่อความมั่นใจ */
+#profileModal {
+        z-index: 9998;
+}
+#postDetailModal .like-button {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#postDetailModal .like-button i {
+    color: #9ca3af;
+    transition: color 0.2s;
+}
+
+#postDetailModal .like-button.active i {
+    color: #ef4444;
+}
+
+#postDetailModal .comments-button {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+#postDetailModal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999 !important;
+    cursor: pointer;
+}
+
+#postDetailModal .bg-white {
+    margin: auto;
+    max-width: 80%;
+    max-height: 90vh;
+}
+#postDetailModal.hidden {
+    display: none !important; /* บังคับซ่อนเมื่อมีคลาส hidden */
+}
+
+#postDetailModal > div {
+    pointer-events: auto; /* อนุญาตให้โต้ตอบกับเนื้อหาใน modal */
+    background: white; /* ป้องกันพื้นหลังโปร่งแสง */
+}
+
+
+
+#postDetailModal .bg-white {
+    pointer-events: all;
+}
+
+
+
+#postDetailModal .bg-white,
+#postDetailModal button,
+#postDetailModal img {
+    pointer-events: auto !important; /* เปิดการโต้ตอบเฉพาะส่วนที่ต้องการ */
+}
+
+#closePostDetailModal {
+    z-index: 10000; /* ให้ปุ่มปิดอยู่บนสุด */
+}
+#post-detail-menu-* {
+    top: 100%;
+    right: 0;
+    width: auto;
+    min-width: 160px;
+    z-index: 100;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+#post-detail-menu-* ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+#post-detail-menu-* a,
+#post-detail-menu-* button {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+    color: #4b5563;
+    transition: background-color 0.2s;
+}
+
+#post-detail-menu-* a:hover,
+#post-detail-menu-* button:hover {
+    background-color: #f3f4f6;
+}
+
+#post-detail-menu-* button.text-red-600 {
+    color: #dc2626;
+}
+body.sticky-nav {
+    padding-top: 0 !important;
+}
+.navbar { z-index: 1050 !important; }
+
+
+/* dropdown ใต้ bell/profile ให้ต่ำกว่า modal ด้วย */
+#notificationDropdown,
+#profileDropdown { z-index: 1035 !important; }
+#commentsModal { position: fixed; inset: 0; z-index: 9999 !important; }
+#commentsModal .modal-container { z-index: 100001 !important; }
+#commentsModal .modal-content  { z-index: 100002 !important; }
+
+.modal {
+    --bs-modal-zindex: 10000;}
+
+/* ===== Toolbar Layout (share page) ===== */
+.filters-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:12px 16px;
+  background:#f3fbf5;
+  border-bottom:1px solid #e5efe6;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.left-controls, .right-controls{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.field{ display:flex; align-items:center; gap:8px; }
+.label{ font-size:14px; color:#6b7280; white-space:nowrap; }
+
+select.filter-chip{
+  padding:10px 14px;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  background:#fff;
+  font-size: 0.9rem;
+  min-width: 150px;
+}
+select.filter-chip:focus{ outline:none; box-shadow:0 0 0 3px rgba(5,150,105,0.2); border-color:#059669; }
+
+.divider-vert{ width:1px; height:24px; background:#e5e7eb; }
+
+/* sort button look like a pill */
+#sortDropdownBtn.filter-chip{ display:inline-flex; align-items:center; gap:6px; }
+#sortDropdownMenu{ z-index: 1060; }
+
+/* Search input responsive width */
+.search-input{ width: clamp(240px, 32vw, 360px); }
+@media (max-width: 1024px){
+  .filters-toolbar{ flex-wrap:wrap; align-items:flex-start; }
+  .right-controls{ width:100%; justify-content:flex-end; }
+  .divider-vert{ display:none; }
+}
+
+/* ===== Share1 filters bar tidy (scoped) ===== */
+#filtersBar{ background:#f3fbf5; border-bottom:1px solid #e5efe6; padding-top:12px; padding-bottom:12px; }
+#filtersBar .filter-label{ color:#6b7280; font-weight:500; }
+#filtersBar .filter-chip{ padding:10px 14px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; min-width:160px; }
+#filtersBar #sortDropdownBtn.filter-chip{ display:inline-flex; align-items:center; gap:6px; }
+#filtersBar .search-input{ width: clamp(260px, 34vw, 420px); border:1px solid #d1d5db; background:#fff; border-radius: 22px; }
+#filtersBar .search-bar .fa-search{ left: 14px; }
+/* Align labels and inputs neatly */
+#filtersBar .filter-item{ gap:8px; }
+#filtersBar .filter-item .filter-label{  }
+/* Video embed container fixes */
+.video-embed {
+    position: relative;
+    width: 100%;
+    background: #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Remove the fixed aspect ratio - let content determine height */
+.video-embed::before {
+    display: none; 
+    padding-top:125%/* Remove this or set dynamically based on content */
+}
+
+/* For feed cards - limit max height */
+.share-card .video-embed {
+    max-height: 400px;
+}
+
+.share-card .video-embed iframe,
+.share-card .video-embed video {
+    position: relative;
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
+}
+
+/* For modal - allow full height */
+#postDetailModalImages .video-embed,
+.modal .video-embed {
+    max-height: 70vh;
+}
+
+#postDetailModalImages .video-embed iframe,
+#postDetailModalImages .video-embed video,
+.modal .video-embed iframe,
+.modal .video-embed video {
+    position: relative;
+    width: 100%;
+    height: 395px;
+    max-height: 70vh;
+    object-fit: contain;
+}
+
+/* TikTok specific handling */
+.video-embed blockquote.tiktok-embed {
+    max-width: 100% !important;
+    min-width: unset !important;
+    margin: 0 auto;
+}
+
+/* Ensure proper display in grid */
+.share-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.share-card .video-embed {
+    flex-shrink: 0;
+}
+.video-embed iframe, .share-card .video-embed video {
+
+}
+/* ========== Video Layout Fixes ========== */
+
+/* Video embed container - จัดการขนาดและตำแหน่งหลัก */
+.video-embed {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px; /* ให้มีความสูงขั้นต่ำ */
+}
+
+/* สำหรับ share card - ปรับให้วิดีโอแสดงเต็มพื้นที่ */
+.share-card .video-embed {
+    height: 300px; /* กำหนดความสูงคงที่ */
+    margin-bottom: 1rem;
+}
+
+.share-card .video-embed::before {
+    display: none; /* ไม่ใช้ aspect ratio แบบเก่า */
+}
+
+/* วิดีโอ iframe และ video element */
+.video-embed iframe,
+.video-embed video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover; /* ให้วิดีโอครอบคลุมพื้นที่ทั้งหมด */
+}
+
+/* สำหรับ TikTok embed ที่ใช้ blockquote */
+.video-embed blockquote.tiktok-embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    min-width: unset !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* แก้ไขสำหรับ modal ให้แสดงผลดีขึ้น */
+#postDetailModalImages .video-embed,
+.modal .video-embed {
+    min-height: 400px;
+    max-height: 70vh;
+    height: auto;
+}
+
+/* Modal video ควรแสดงตามขนาดเนื้อหา */
+#postDetailModalImages .video-embed iframe,
+#postDetailModalImages .video-embed video,
+.modal .video-embed iframe,
+.modal .video-embed video {
+    object-fit: contain; /* ให้แสดงทั้งหมดโดยไม่ตัด */
+}
+
+/* Profile modal video */
+.profile-modal .video-embed {
+    height: 250px;
+    margin-bottom: 0.5rem;
+}
+
+/* เมื่อวิดีโอโหลดแล้ว ให้ปรับขนาดอัตโนมัติ */
+.video-embed video[src],
+.video-embed iframe[src] {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+
+
+/* ซ่อน loading เมื่อวิดีโอโหลดแล้ว */
+.video-embed.loaded::after {
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* แก้ไขการจัดเรียงใน share card */
+.share-card-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ให้วิดีโออยู่ด้านบนสุดของการ์ด */
+.share-card .video-embed {
+    order: -1; /* ย้ายไปด้านบนสุด */
+    margin: 0; /* ไม่ต้องมี margin */
+    border-radius: 0.75rem 0.75rem 0 0; /* มุมโค้งเฉพาะด้านบน */
+}
+
+/* เมื่อมีทั้งวิดีโอและรูปภาพ */
+.share-card:has(.video-embed) .img-container {
+    margin-top: 1rem; /* เว้นระยะห่างจากวิดีโอ */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .share-card .video-embed {
+        height: 250px;
+    }
+    
+    #postDetailModalImages .video-embed,
+    .modal .video-embed {
+        min-height: 300px;
+        max-height: 60vh;
+    }
+}
+
+@media (max-width: 480px) {
+    .share-card .video-embed {
+        height: 200px;
+    }
+}
+/* Video Play Icon Styles */
+.video-play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 5;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.video-play-overlay:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.video-play-button {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.video-play-button::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 18px solid #059669;
+    border-top: 12px solid transparent;
+    border-bottom: 12px solid transparent;
+    margin-left: 4px; /* เลื่อนไปทางขวาเล็กน้อยเพื่อให้ดูเป็นกลาง */
+}
+
+.video-play-overlay:hover .video-play-button {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 1);
+}
+
+/* แสดงไอคอนเฉพาะบน share card (ไม่ใช่ modal) */
+.share-card .video-embed:not(.video-modal) .video-play-overlay {
+    display: flex;
+}
+
+/* ซ่อนไอคอนใน modal */
+.video-modal .video-play-overlay {
+}
+
+/* Video Type Badge - แสดงประเภทวิดีโอ */
+.video-type-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.video-type-badge i {
+    font-size: 10px;
+}
+
+/* ปรับแต่งสำหรับ mobile */
+@media (max-width: 768px) {
+    .video-play-button {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .video-play-button::before {
+        border-left-width: 15px;
+        border-top-width: 10px;
+        border-bottom-width: 10px;
+        margin-left: 3px;
+    }
+}
+
+/* Animation สำหรับ hover effect */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.video-play-button:hover {
+    animation: pulse 0.6s ease-in-out;
+}
+
+/* สำหรับ TikTok และ platform อื่นๆ */
+.video-embed[data-platform="tiktok"] .video-type-badge {
+    background: rgba(255, 0, 80, 0.8);
+}
+
+.video-embed[data-platform="youtube"] .video-type-badge {
+    background: rgba(255, 0, 0, 0.8);
+}
+
+.video-embed[data-platform="instagram"] .video-type-badge {
+    background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+}
+/* วิธี crop Instagram iframe เพื่อซ่อน header/footer */
+.video-embed[data-platform="instagram"] {
+    position: relative;
+    overflow: hidden;
+    background: #000;
+}
+
+/* Method 1: Scale and crop */
+.video-embed[data-platform="instagram"] iframe {
+    width: 460px !important;
+    height: 600px !important;
+    position: absolute;
+    top: 50%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    border: none;
+}
+
+/* Method 2: ใช้ clip-path เพื่อตัดเฉพาะส่วนที่ต้องการ */
+.video-embed[data-platform="instagram"].clean-crop iframe {
+    clip-path: inset(60px 0px 120px 0px); /* top right bottom left */
+    width: 100%;
+    height: 500px;
+    transform: none;
+    top: auto;
+    left: auto;
+    position: relative;
+}
+
+/* Method 3: ใช้ mask เพื่อซ่อนส่วนขอบ */
+.video-embed[data-platform="instagram"].mask-method {
+    -webkit-mask: 
+        linear-gradient(to right, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%),
+        linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 100px), transparent 100%);
+    mask: 
+        linear-gradient(to right, transparent 0px, black 20px, black calc(100% - 20px), transparent 100%),
+        linear-gradient(to bottom, transparent 0px, black 60px, black calc(100% - 100px), transparent 100%);
+    -webkit-mask-composite: intersect;
+    mask-composite: intersect;
+}
+
+/* Alternative: สร้าง overlay เพื่อปิด header/footer */
+.video-embed[data-platform="instagram"].overlay-method::before,
+.video-embed[data-platform="instagram"].overlay-method::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: #f0f9f0; /* สีเดียวกับ background ของเว็บ */
+    z-index: 10;
+    pointer-events: none;
+}
+
+.video-embed[data-platform="instagram"].overlay-method::before {
+    top: 0;
+    height: 60px; /* ซ่อน header */
+}
+
+.video-embed[data-platform="instagram"].overlay-method::after {
+    bottom: 0;
+    height: 100px; /* ซ่อน footer */
+}
+.fb_iframe_widget_fluid {
+    width: 100% !important;
+}
+.aspect-video {
+    height: 400px;
+}
+.profile-posts-grid .video-embed,
+.video-embed.video-modal {
+  position: relative;
+  aspect-ratio: 16 / 9;  /* คุมสัดส่วนวิดีโอในโมดัล */
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* บังคับมีเดียให้กินพื้นที่เต็มกรอบ */
+.video-embed iframe,
+.video-embed video,
+.video-embed .tiktok-embed,
+.video-embed blockquote.tiktok-embed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Video styles for profile modal */
+.profile-modal .video-embed {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.profile-modal .video-embed::before {
+    content: "";
+    display: block;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+}
+
+.profile-modal .video-embed > iframe,
+.profile-modal .video-embed > video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* Ensure video containers have proper dimensions */
+.profile-modal .video-container {
+    width: 100%;
+}
+
+/* Image carousel styles for profile modal */
+.profile-modal .carousel-container {
+    height: 200px;
+    position: relative;
+}
+
+.profile-modal .carousel-inner {
+    height: 100%;
+}
+
+.profile-modal .carousel-item {
+    transition: opacity 0.3s ease;
+}
+
+.profile-modal .carousel-item:not(.active) {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.profile-modal .carousel-item.active {
+    opacity: 1;
+}
+@media (min-width: 1024px) {
+  .lg\:hidden { display: none !important; }
+  .hidden.lg\:flex { display: flex !important; }
+}
+@media (max-width: 1023.98px) {
+  .lg\:hidden { display: flex !important; }
+  .hidden.lg\:flex { display: none !important; }
+}
+.feed-toolbar{display:grid;grid-template-columns:1fr auto;gap:.75rem;align-items:center;
+  padding:.75rem 1rem;background:#f0f9f0;border-radius:.75rem;border:1px solid #e5e7eb}
+.feed-toolbar .filters{display:flex;flex-wrap:wrap;gap:.5rem}
+.feed-toolbar .actions{display:flex;gap:.5rem;align-items:center;justify-content:flex-end}
+.feed-toolbar .search-input{width:320px}
+@media (max-width:1023.98px){
+  .feed-toolbar{grid-template-columns:1fr}
+  .feed-toolbar .search-input{width:100%}
+}
+/* แก้ไขความสูงการ์ดให้เท่ากัน */
+.share-card {
+    background: rgb(245, 245, 245);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* ให้การ์ดใช้ความสูงเต็มของ grid cell */
+}
+
+.share-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+    align-items: start; /* จัดการ์ดให้อยู่ด้านบน */
+    grid-auto-rows: minmax(500px, auto); /* กำหนดความสูงขั้นต่ำ */
+}
+
+/* แก้ไขพื้นที่วิดีโอให้มีขนาดคงที่ */
+.share-card .video-embed {
+    height: 300px; /* กำหนดความสูงคงที่ */
+    width: 100%;
+    background: #000;
+    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0; /* ไม่ให้หดตัว */
+    order: -1; /* ให้อยู่ด้านบนสุด */
+}
+
+/* แก้ไขพื้นที่รูปภาพให้มีขนาดคงที่ */
+.share-card .img-container {
+    position: relative;
+    width: 100%;
+    height: 300px; /* กำหนดความสูงคงที่เท่ากับวิดีโอ */
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0; /* ไม่ให้หดตัว */
+    margin-bottom: 1rem;
+}
+
+/* เนื้อหาการ์ดให้ขยายได้ */
+.share-card-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* ให้ขยายเต็มพื้นที่ที่เหลือ */
+    gap: 1rem;
+}
+
+/* ส่วนท้ายการ์ด (ปุ่มไลค์และคอมเมนต์) ให้อยู่ด้านล่าง */
+.post-footer {
+    margin-top: auto; /* ดันให้อยู่ด้านล่างสุด */
+}
+
+/* วิดีโอแต่ละประเภทให้มีขนาดเท่ากัน */
+.video-embed iframe,
+.video-embed video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+}
+
+/* TikTok embed ให้มีขนาดเท่ากัน */
+.video-embed blockquote.tiktok-embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    min-width: unset !important;
+    margin: 0 !important;
+}
+
+/* Instagram และ Facebook embed */
+.video-embed[data-platform="instagram"] iframe,
+.video-embed[data-platform="facebook"] iframe,
+.video-embed[data-platform="facebook"] .fb-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Carousel รูปภาพ */
+.carousel-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: none;
+}
+
+.carousel-item.active {
+    opacity: 1;
+    display: block;
+    z-index: 1;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .share-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-auto-rows: minmax(450px, auto);
+        gap: 1rem;
+    }
+    
+    .share-card .video-embed,
+    .share-card .img-container {
+        height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .share-grid {
+        grid-template-columns: 1fr;
+        grid-auto-rows: minmax(400px, auto);
+    }
+    
+    .share-card .video-embed,
+    .share-card .img-container {
+        height: 200px;
+    }
+}
+/* ===== Filters Bar Layout Fix ===== */
+#filtersBar {
+    background: #f3fbf5;
+    border-bottom: 1px solid #e5efe6;
+    padding: 12px 16px;
+}
+
+#filtersBar .hidden.lg\:flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+    margin-left: -47px;
+}
+#sortDropdownMenu a.sort-option {
+    color: #374151 !important; /* สีเทาเข้ม */
+    text-decoration: none;
+}
+
+#sortDropdownMenu a.sort-option:hover {
+    color: #059669 !important; /* สีเขียวเมื่อ hover */
+    background-color: #f3f4f6;
+}
+/* Left side - Filters */
+#filtersBar .hidden.lg\:flex > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex: 1;
+}
+
+/* Filter items styling */
+#filtersBar .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+#filtersBar .filter-label {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 14px;
+    min-width: 80px;
+}
+
+#filtersBar .filter-chip {
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    min-width: 140px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Right side - Search & Add Button */
+#filtersBar .hidden.lg\:flex > div:last-child {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+/* Search input styling */
+#filtersBar .search-input {
+    width: 300px;
+    padding: 10px 16px 10px 40px;
+    border: 1px solid #d1d5db;
+    border-radius: 22px;
+    background: #fff;
+    font-size: 14px;
+}
+
+#filtersBar .search-bar .fa-search {
+    left: 14px;
+    color: #6b7280;
+}
+
+/* Add button styling */
+#filtersBar .green-circle {
+    background-color: #218860;
+    color: #ffffff;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    flex-shrink: 0;
+}
+
+#filtersBar .green-circle:hover {
+    background-color: rgb(24, 95, 68);
+}
+
+/* Sort dropdown specific styling */
+#filtersBar #sortDropdownBtn.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: space-between;
+}
+
+#sortDropdownMenu {
+    border: 1px solid #e5e7eb;
+    right: 0;
+    z-index: 1060;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1280px) {
+    #filtersBar .hidden.lg\:flex > div:first-child {
+        gap: 16px;
+    }
+    
+    #filtersBar .filter-label {
+        min-width: 70px;
+        font-size: 13px;
+    }
+    
+    #filtersBar .filter-chip {
+        min-width: 120px;
+        padding: 8px 12px;
+    }
+    
+    #filtersBar .search-input {
+        width: 250px;
+    }
+}
+
+@media (max-width: 1024px) {
+    #filtersBar .hidden.lg\:flex {
+        display: none !important;
+    }
+}
+
+/* Ensure mobile layout is properly hidden on desktop */
+@media (min-width: 1024px) {
+    .lg\:hidden {
+        display: none !important;
+    }
+}
+
+/* Fix for select elements in filters */
+#filtersBar select.filter-chip {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* Hover states */
+#filtersBar .filter-chip:hover {
+    border-color: #218860;
+}
+
+#filtersBar .filter-chip:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(33, 136, 96, 0.1);
+    border-color: #218860;
+}
+/* ===== Filters Bar Layout Fix ===== */
+#filtersBar {
+    background: #f3fbf5;
+    border-bottom: 1px solid #e5efe6;
+    padding: 12px 16px;
+}
+
+#filtersBar .hidden.lg\:flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 16px; /* ลดจาก 20px เป็น 16px */
+}
+
+/* Left side - Filters */
+#filtersBar .hidden.lg\:flex > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 16px; /* ลดจาก 24px เป็น 16px */
+    flex: 1;
+}
+
+/* Filter items styling */
+#filtersBar .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* ลดจาก 8px เป็น 6px */
+    white-space: nowrap;
+}
+
+#filtersBar .filter-label {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 14px;
+    min-width: 50px; /* ลดจาก 80px เป็น 50px */
+    text-align: right; /* จัดข้อความชิดขวา */
+}
+
+#filtersBar .filter-chip {
+    padding: 8px 12px; /* ลด padding ลงเล็กน้อย */
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    min-width: 120px; /* ลดจาก 140px เป็น 120px */
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Right side - Search & Add Button */
+#filtersBar .hidden.lg\:flex > div:last-child {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* ลดจาก 16px เป็น 12px */
+    flex-shrink: 0;
+}
+
+/* Search input styling */
+#filtersBar .search-input {
+    width: 280px; /* ลดจาก 300px เป็น 280px */
+    padding: 8px 16px 8px 40px; /* ลด padding ลง */
+    border: 1px solid #d1d5db;
+    border-radius: 22px;
+    background: #fff;
+    font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1280px) {
+    #filtersBar .hidden.lg\:flex > div:first-child {
+        gap: 12px; /* ลดจาก 16px เป็น 12px */
+    }
+    
+    #filtersBar .filter-label {
+        min-width: 45px; /* ลดจาก 70px เป็น 45px */
+        font-size: 13px;
+    }
+    
+    #filtersBar .filter-chip {
+        min-width: 110px; /* ลดจาก 120px เป็น 110px */
+        padding: 6px 10px; /* ลด padding ลง */
+    }
+    
+    #filtersBar .search-input {
+        width: 240px; /* ลดจาก 250px เป็น 240px */
+    }
+}
